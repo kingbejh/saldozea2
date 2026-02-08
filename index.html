@@ -1,463 +1,711 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏠 Apartemen Rental Management</title>
-    <style>
-        :root {
-            --bg-primary: #0f1117; --bg-secondary: #1a1d27; --bg-card: #1e2130;
-            --bg-input: #252838; --bg-input-focus: #2a2e42;
-            --text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b; --text-dim: #475569;
-            --border-color: #2d3348; --border-light: #3d4460;
-            --accent-1: #6366f1; --accent-success: #10b981; --accent-danger: #ef4444;
-            --accent-warning: #f59e0b; --accent-cyan: #06b6d4; --accent-pink: #ec4899;
-            --gradient-primary: linear-gradient(135deg, #6366f1, #8b5cf6);
-            --gradient-success: linear-gradient(135deg, #10b981, #059669);
-            --gradient-danger: linear-gradient(135deg, #ef4444, #dc2626);
-            --gradient-warning: linear-gradient(135deg, #f59e0b, #d97706);
-            --gradient-secondary: linear-gradient(135deg, #06b6d4, #0891b2);
-            --gradient-card: linear-gradient(180deg, #1e2130 0%, #1a1d27 100%);
-            --gradient-glass: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3); --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.4);
-            --shadow-glow: 0 0 40px rgba(99,102,241,0.15);
-            --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 18px;
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
-        ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
-
-        .connection-status { position: fixed; top: 80px; right: 20px; padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 600; z-index: 1000; display: flex; align-items: center; gap: 0.5rem; transition: var(--transition); }
-        .connection-status.online { background: rgba(16,185,129,0.2); color: var(--accent-success); border: 1px solid var(--accent-success); }
-        .connection-status.offline { background: rgba(239,68,68,0.2); color: var(--accent-danger); border: 1px solid var(--accent-danger); }
-
-        .header { background: linear-gradient(135deg, rgba(99,102,241,0.95) 0%, rgba(139,92,246,0.95) 50%, rgba(168,85,247,0.95) 100%); backdrop-filter: blur(20px); padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-lg), var(--shadow-glow); border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .header-content { max-width: 1600px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-        .logo { display: flex; align-items: center; gap: 0.75rem; }
-        .logo-icon { width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-        .logo-text { display: flex; flex-direction: column; }
-        .logo-title { font-size: 1.4rem; font-weight: 800; color: white; letter-spacing: -0.5px; }
-        .logo-subtitle { font-size: 0.75rem; color: rgba(255,255,255,0.85); font-weight: 500; letter-spacing: 1px; }
-        .header-info { display: flex; gap: 1.5rem; align-items: center; }
-        .header-stat { display: flex; flex-direction: column; align-items: flex-end; padding: 0.5rem 1rem; background: rgba(255,255,255,0.15); border-radius: var(--radius-md); }
-        .header-stat-label { font-size: 0.65rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; }
-        .header-stat-value { font-size: 1.1rem; font-weight: 700; color: white; }
-        .header-time { display: flex; flex-direction: column; align-items: flex-end; }
-        .header-date { font-size: 0.8rem; color: rgba(255,255,255,0.8); }
-        .header-clock { font-size: 1.3rem; font-weight: 700; color: white; font-variant-numeric: tabular-nums; }
-
-        .nav { background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); overflow-x: auto; position: sticky; top: 77px; z-index: 99; }
-        .nav::-webkit-scrollbar { height: 0; }
-        .nav-content { max-width: 1600px; margin: 0 auto; display: flex; padding: 0 1rem; }
-        .nav-btn { padding: 1rem 1.5rem; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: var(--transition); border-bottom: 3px solid transparent; white-space: nowrap; display: flex; align-items: center; gap: 0.5rem; position: relative; }
-        .nav-btn:hover { color: var(--text-primary); background: rgba(99,102,241,0.1); }
-        .nav-btn.active { color: var(--accent-1); border-bottom-color: var(--accent-1); background: linear-gradient(180deg, rgba(99,102,241,0.15) 0%, transparent 100%); }
-        .nav-btn .badge-count { position: absolute; top: 8px; right: 8px; background: var(--accent-danger); color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; font-weight: 700; }
-
-        .main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeSlideIn 0.4s ease; }
-        @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .card { background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; box-shadow: var(--shadow-md); transition: var(--transition); position: relative; overflow: hidden; }
-        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--gradient-glass); }
-        .card:hover { border-color: var(--border-light); box-shadow: var(--shadow-lg); }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
-        .card-title { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; color: var(--text-primary); }
-        .card-title-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
-        .card-title-icon.primary { background: rgba(99,102,241,0.2); }
-        .card-title-icon.success { background: rgba(16,185,129,0.2); }
-        .card-title-icon.danger { background: rgba(239,68,68,0.2); }
-        .card-title-icon.warning { background: rgba(245,158,11,0.2); }
-        .card-title-icon.cyan { background: rgba(6,182,212,0.2); }
-
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-        .stat-card { background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; position: relative; overflow: hidden; transition: var(--transition); }
-        .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--gradient-primary); }
-        .stat-card.success::before { background: var(--gradient-success); }
-        .stat-card.danger::before { background: var(--gradient-danger); }
-        .stat-card.warning::before { background: var(--gradient-warning); }
-        .stat-card.cyan::before { background: var(--gradient-secondary); }
-        .stat-card-inner { display: flex; justify-content: space-between; align-items: flex-start; }
-        .stat-icon { width: 50px; height: 50px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: rgba(99,102,241,0.15); }
-        .stat-card.success .stat-icon { background: rgba(16,185,129,0.15); }
-        .stat-card.danger .stat-icon { background: rgba(239,68,68,0.15); }
-        .stat-card.warning .stat-icon { background: rgba(245,158,11,0.15); }
-        .stat-card.cyan .stat-icon { background: rgba(6,182,212,0.15); }
-        .stat-content { flex: 1; }
-        .stat-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.75px; font-weight: 600; margin-bottom: 0.4rem; }
-        .stat-value { font-size: 1.75rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.5rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .stat-card.success .stat-value { background: var(--gradient-success); -webkit-background-clip: text; background-clip: text; }
-        .stat-card.danger .stat-value { background: var(--gradient-danger); -webkit-background-clip: text; background-clip: text; }
-        .stat-card.warning .stat-value { background: var(--gradient-warning); -webkit-background-clip: text; background-clip: text; }
-        .stat-card.cyan .stat-value { background: var(--gradient-secondary); -webkit-background-clip: text; background-clip: text; }
-        .stat-breakdown { display: flex; gap: 0.75rem; font-size: 0.7rem; color: var(--text-muted); flex-wrap: wrap; }
-        .stat-breakdown-item { display: flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.5rem; background: var(--bg-input); border-radius: var(--radius-sm); }
-        .stat-breakdown-item.cash { border-left: 2px solid var(--accent-success); }
-        .stat-breakdown-item.transfer { border-left: 2px solid var(--accent-1); }
-        .stat-breakdown-item.qr { border-left: 2px solid var(--accent-cyan); }
-
-        .quick-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color); }
-        .quick-action-btn { padding: 0.75rem 1.25rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 0.5rem; }
-        .quick-action-btn:hover { background: var(--accent-1); border-color: var(--accent-1); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(99,102,241,0.3); }
-        .quick-action-btn.success:hover { background: var(--accent-success); border-color: var(--accent-success); }
-        .quick-action-btn.danger:hover { background: var(--accent-danger); border-color: var(--accent-danger); }
-
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        .form-group.full-width { grid-column: 1 / -1; }
-        .form-label { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; display: flex; align-items: center; gap: 0.4rem; }
-        .form-label .required { color: var(--accent-danger); }
-        .form-input, .form-select, .form-textarea { padding: 0.875rem 1rem; background: var(--bg-input); border: 2px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.95rem; font-family: inherit; transition: var(--transition); }
-        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent-1); background: var(--bg-input-focus); box-shadow: 0 0 0 4px rgba(99,102,241,0.15); }
-        .form-input::placeholder { color: var(--text-dim); }
-        .form-input.readonly { background: var(--bg-secondary); color: var(--text-muted); cursor: not-allowed; }
-        .form-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
-        .form-hint { font-size: 0.7rem; color: var(--text-muted); margin-top: -0.25rem; }
-
-        .price-display { background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.1) 100%); border: 2px solid var(--accent-1); border-radius: var(--radius-lg); padding: 1.25rem; text-align: center; position: relative; overflow: hidden; }
-        .price-display::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient-primary); }
-        .price-display .label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; font-weight: 600; }
-        .price-display .value { font-size: 2rem; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-
-        .btn { padding: 0.875rem 1.5rem; border: none; border-radius: var(--radius-md); font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-family: inherit; }
-        .btn-primary { background: var(--gradient-primary); color: white; box-shadow: 0 4px 15px rgba(99,102,241,0.35); }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(99,102,241,0.45); }
-        .btn-success { background: var(--gradient-success); color: white; box-shadow: 0 4px 15px rgba(16,185,129,0.35); }
-        .btn-success:hover { transform: translateY(-3px); }
-        .btn-danger { background: var(--gradient-danger); color: white; box-shadow: 0 4px 15px rgba(239,68,68,0.35); }
-        .btn-danger:hover { transform: translateY(-3px); }
-        .btn-warning { background: var(--gradient-warning); color: white; }
-        .btn-secondary { background: var(--bg-input); color: var(--text-primary); border: 2px solid var(--border-color); }
-        .btn-secondary:hover { border-color: var(--accent-1); }
-        .btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; }
-        .btn-lg { padding: 1rem 2rem; font-size: 1rem; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
-        .btn-group { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-
-        .table-container { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border-color); background: var(--bg-card); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border-color); }
-        th { background: var(--bg-input); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.75px; color: var(--text-secondary); font-weight: 700; white-space: nowrap; }
-        tr:hover { background: rgba(99,102,241,0.05); }
-        tr:last-child td { border-bottom: none; }
-        td { font-size: 0.8rem; }
-        .table-empty { text-align: center; padding: 3rem; color: var(--text-muted); }
-
-        .badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; border-radius: 20px; font-size: 0.65rem; font-weight: 700; }
-        .badge-primary { background: rgba(99,102,241,0.2); color: var(--accent-1); }
-        .badge-success { background: rgba(16,185,129,0.2); color: var(--accent-success); }
-        .badge-danger { background: rgba(239,68,68,0.2); color: var(--accent-danger); }
-        .badge-warning { background: rgba(245,158,11,0.2); color: var(--accent-warning); }
-        .badge-cyan { background: rgba(6,182,212,0.2); color: var(--accent-cyan); }
-
-        .unit-section { margin-bottom: 2rem; }
-        .unit-section-title { font-size: 1rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
-        .unit-section-title .count { background: var(--bg-input); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; }
-        .unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.75rem; }
-        .unit-card { background: var(--bg-card); border: 2px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; transition: var(--transition); cursor: pointer; position: relative; overflow: hidden; }
-        .unit-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-        .unit-card.available { border-color: var(--accent-success); background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, transparent 100%); }
-        .unit-card.occupied { border-color: var(--accent-danger); background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, transparent 100%); }
-        .unit-card.checkout-soon { border-color: var(--accent-warning); background: linear-gradient(135deg, rgba(245,158,11,0.08) 0%, transparent 100%); animation: pulse 2s infinite; }
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.8; } }
-        .unit-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-        .unit-number { font-weight: 800; font-size: 1.1rem; color: var(--text-primary); }
-        .unit-type-badge { font-size: 0.6rem; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 700; background: var(--bg-input); color: var(--text-secondary); }
-        .unit-status { font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.3rem; }
-        .unit-card.available .unit-status { color: var(--accent-success); }
-        .unit-card.occupied .unit-status { color: var(--accent-danger); }
-        .unit-card.checkout-soon .unit-status { color: var(--accent-warning); }
-        .unit-info { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); font-size: 0.7rem; color: var(--text-secondary); }
-        .unit-guest { display: flex; align-items: center; gap: 0.3rem; margin-bottom: 0.25rem; }
-        .unit-timer { display: flex; align-items: center; gap: 0.3rem; font-weight: 700; color: var(--accent-warning); }
-
-        .filter-section { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1.25rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-bottom: 1.5rem; align-items: flex-end; }
-        .filter-section .form-group { min-width: 160px; flex: 1; }
-
-        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
-        .toast { padding: 1rem 1.5rem; border-radius: var(--radius-md); color: white; font-weight: 600; animation: toastSlideIn 0.4s cubic-bezier(0.4,0,0.2,1); display: flex; align-items: center; gap: 0.75rem; box-shadow: var(--shadow-lg); max-width: 400px; cursor: pointer; }
-        .toast.success { background: linear-gradient(135deg, rgba(16,185,129,0.95), rgba(5,150,105,0.95)); }
-        .toast.error { background: linear-gradient(135deg, rgba(239,68,68,0.95), rgba(220,38,38,0.95)); }
-        .toast.warning { background: linear-gradient(135deg, rgba(245,158,11,0.95), rgba(217,119,6,0.95)); }
-        .toast.info { background: linear-gradient(135deg, rgba(99,102,241,0.95), rgba(139,92,246,0.95)); }
-        @keyframes toastSlideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 1rem; }
-        .modal-overlay.active { display: flex; }
-        .modal { background: var(--bg-card); border-radius: var(--radius-xl); max-width: 700px; width: 100%; max-height: 90vh; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column; }
-        .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-input); }
-        .modal-title { font-size: 1.25rem; font-weight: 700; }
-        .modal-close { width: 40px; height: 40px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 1.25rem; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; }
-        .modal-close:hover { background: var(--accent-danger); color: white; }
-        .modal-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
-        .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 0.75rem; }
-
-        .top-list { display: flex; flex-direction: column; gap: 0.5rem; }
-        .top-list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-input); border-radius: var(--radius-md); }
-        .top-list-item .rank { font-size: 1.25rem; margin-right: 0.75rem; }
-        .top-list-item .name { flex: 1; font-weight: 600; }
-        .top-list-item .value { font-weight: 700; color: var(--accent-1); }
-
-        .checkout-alert { background: linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.1) 100%); border: 1px solid var(--accent-warning); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
-        .checkout-alert-icon { font-size: 2rem; animation: bounce 1s infinite; }
-        @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        .checkout-alert-content { flex: 1; }
-        .checkout-alert-title { font-weight: 700; color: var(--accent-warning); margin-bottom: 0.25rem; }
-        .checkout-alert-list { font-size: 0.85rem; color: var(--text-secondary); }
-
-        .payment-split { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
-        .payment-split-item { text-align: center; padding: 1rem; background: var(--bg-input); border-radius: var(--radius-md); border: 1px solid var(--border-color); }
-        .payment-split-item .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
-        .payment-split-item .amount { font-size: 1.1rem; font-weight: 700; }
-        .payment-split-item .label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; }
-        .payment-split-item.cash .amount { color: var(--accent-success); }
-        .payment-split-item.transfer .amount { color: var(--accent-1); }
-        .payment-split-item.qr .amount { color: var(--accent-cyan); }
-
-        .empty-state { text-align: center; padding: 2rem; color: var(--text-muted); }
-        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
-        .empty-state-text { font-size: 0.9rem; }
-
-        @media (max-width: 768px) {
-            .header-content { flex-direction: column; }
-            .header-info { width: 100%; justify-content: space-between; }
-            .nav-btn { padding: 0.875rem 1rem; font-size: 0.8rem; }
-            .main { padding: 1rem; }
-            .form-grid { grid-template-columns: 1fr; }
-            .unit-grid { grid-template-columns: repeat(2, 1fr); }
-            .payment-split { grid-template-columns: 1fr; }
-        }
-        @media print {
-            .header, .nav, .filter-section, .btn, .toast-container, .connection-status, .quick-actions { display: none !important; }
-            body { background: white; color: black; }
-            .stat-value { -webkit-text-fill-color: black !important; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏠 Apartemen Rental Management</title>
+<style>
+:root {
+--bg-primary: #0f1117; --bg-secondary: #1a1d27; --bg-card: #1e2130;
+--bg-input: #252838; --bg-input-focus: #2a2e42;
+--text-primary: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b; --text-dim: #475569;
+--border-color: #2d3348; --border-light: #3d4460;
+--accent-1: #6366f1; --accent-success: #10b981; --accent-danger: #ef4444;
+--accent-warning: #f59e0b; --accent-cyan: #06b6d4; --accent-pink: #ec4899;
+--gradient-primary: linear-gradient(135deg, #6366f1, #8b5cf6);
+--gradient-success: linear-gradient(135deg, #10b981, #059669);
+--gradient-danger: linear-gradient(135deg, #ef4444, #dc2626);
+--gradient-warning: linear-gradient(135deg, #f59e0b, #d97706);
+--gradient-secondary: linear-gradient(135deg, #06b6d4, #0891b2);
+--gradient-card: linear-gradient(180deg, #1e2130 0%, #1a1d27 100%);
+--gradient-glass: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+--shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3); --shadow-lg: 0 10px 25px -5px rgba(0,0,0,0.4);
+--shadow-glow: 0 0 40px rgba(99,102,241,0.15);
+--radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 18px;
+--transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+.connection-status { position: fixed; top: 80px; right: 20px; padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 600; z-index: 1000; display: flex; align-items: center; gap: 0.5rem; transition: var(--transition); }
+.connection-status.online { background: rgba(16,185,129,0.2); color: var(--accent-success); border: 1px solid var(--accent-success); }
+.connection-status.offline { background: rgba(239,68,68,0.2); color: var(--accent-danger); border: 1px solid var(--accent-danger); }
+.connection-status.connecting { background: rgba(245,158, 11, 0.2); color: var(--accent-warning); border: 1px solid var(--accent-warning); }
+.header { background: linear-gradient(135deg, rgba(99,102,241,0.95) 0%, rgba(139,92,246,0.95) 50%, rgba(168,85,247,0.95) 100%); backdrop-filter: blur(20px); padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-lg), var(--shadow-glow); border-bottom: 1px solid rgba(255,255,255,0.1); }
+.header-content { max-width: 1600px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.logo { display: flex; align-items: center; gap: 0.75rem; }
+.logo-icon { width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+.logo-text { display: flex; flex-direction: column; }
+.logo-title { font-size: 1.4rem; font-weight: 800; color: white; letter-spacing: -0.5px; }
+.logo-subtitle { font-size: 0.75rem; color: rgba(255,255,255,0.85); font-weight: 500; letter-spacing: 1px; }
+.header-info { display: flex; gap: 1.5rem; align-items: center; }
+.header-stat { display: flex; flex-direction: column; align-items: flex-end; padding: 0.5rem 1rem; background: rgba(255,255,255,0.15); border-radius: var(--radius-md); }
+.header-stat-label { font-size: 0.65rem; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 0.5px; }
+.header-stat-value { font-size: 1.1rem; font-weight: 700; color: white; }
+.header-time { display: flex; flex-direction: column; align-items: flex-end; }
+.header-date { font-size: 0.8rem; color: rgba(255,255,255,0.8); }
+.header-clock { font-size: 1.3rem; font-weight: 700; color: white; font-variant-numeric: tabular-nums; }
+.nav { background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); overflow-x: auto; position: sticky; top: 77px; z-index: 99; }
+.nav::-webkit-scrollbar { height: 0; }
+.nav-content { max-width: 1600px; margin: 0 auto; display: flex; padding: 0 1rem; }
+.nav-btn { padding: 1rem 1.5rem; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: var(--transition); border-bottom: 3px solid transparent; white-space: nowrap; display: flex; align-items: center; gap: 0.5rem; position: relative; }
+.nav-btn:hover { color: var(--text-primary); background: rgba(99,102,241,0.1); }
+.nav-btn.active { color: var(--accent-1); border-bottom-color: var(--accent-1); background: linear-gradient(180deg, rgba(99,102,241,0.15) 0%, transparent 100%); }
+.nav-btn .badge-count { position: absolute; top: 8px; right: 8px; background: var(--accent-danger); color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; font-weight: 700; }
+.main { max-width: 1600px; margin: 0 auto; padding: 1.5rem; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeSlideIn 0.4s ease; }
+@keyframes fadeSlideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.card { background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; box-shadow: var(--shadow-md); transition: var(--transition); position: relative; overflow: hidden; }
+.card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--gradient-glass); }
+.card:hover { border-color: var(--border-light); box-shadow: var(--shadow-lg); }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+.card-title { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; color: var(--text-primary); }
+.card-title-icon { width: 36px; height: 36px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+.card-title-icon.primary { background: rgba(99,102,241,0.2); }
+.card-title-icon.success { background: rgba(16,185,129,0.2); }
+.card-title-icon.danger { background: rgba(239,68,68,0.2); }
+.card-title-icon.warning { background: rgba(245,158,11,0.2); }
+.card-title-icon.cyan { background: rgba(6,182,212,0.2); }
+.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.stat-card { background: var(--gradient-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; position: relative; overflow: hidden; transition: var(--transition); }
+.stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--gradient-primary); }
+.stat-card.success::before { background: var(--gradient-success); }
+.stat-card.danger::before { background: var(--gradient-danger); }
+.stat-card.warning::before { background: var(--gradient-warning); }
+.stat-card.cyan::before { background: var(--gradient-secondary); }
+.stat-card-inner { display: flex; justify-content: space-between; align-items: flex-start; }
+.stat-icon { width: 50px; height: 50px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: rgba(99,102,241,0.15); }
+.stat-card.success .stat-icon { background: rgba(16,185,129,0.15); }
+.stat-card.danger .stat-icon { background: rgba(239,68,68,0.15); }
+.stat-card.warning .stat-icon { background: rgba(245,158,11,0.15); }
+.stat-card.cyan .stat-icon { background: rgba(6,182,212,0.15); }
+.stat-content { flex: 1; }
+.stat-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.75px; font-weight: 600; margin-bottom: 0.4rem; }
+.stat-value { font-size: 1.75rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.5rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.stat-card.success .stat-value { background: var(--gradient-success); -webkit-background-clip: text; background-clip: text; }
+.stat-card.danger .stat-value { background: var(--gradient-danger); -webkit-background-clip: text; background-clip: text; }
+.stat-card.warning .stat-value { background: var(--gradient-warning); -webkit-background-clip: text; background-clip: text; }
+.stat-card.cyan .stat-value { background: var(--gradient-secondary); -webkit-background-clip: text; background-clip: text; }
+.stat-breakdown { display: flex; gap: 0.75rem; font-size: 0.7rem; color: var(--text-muted); flex-wrap: wrap; }
+.stat-breakdown-item { display: flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.5rem; background: var(--bg-input); border-radius: var(--radius-sm); }
+.stat-breakdown-item.cash { border-left: 2px solid var(--accent-success); }
+.stat-breakdown-item.transfer { border-left: 2px solid var(--accent-1); }
+.stat-breakdown-item.qr { border-left: 2px solid var(--accent-cyan); }
+.quick-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; padding: 1rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color); }
+.quick-action-btn { padding: 0.75rem 1.25rem; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 0.5rem; }
+.quick-action-btn:hover { background: var(--accent-1); border-color: var(--accent-1); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(99,102,241,0.3); }
+.quick-action-btn.success:hover { background: var(--accent-success); border-color: var(--accent-success); }
+.quick-action-btn.danger:hover { background: var(--accent-danger); border-color: var(--accent-danger); }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+.form-group.full-width { grid-column: 1 / -1; }
+.form-label { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; display: flex; align-items: center; gap: 0.4rem; }
+.form-label .required { color: var(--accent-danger); }
+.form-input, .form-select, .form-textarea { padding: 0.875rem 1rem; background: var(--bg-input); border: 2px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.95rem; font-family: inherit; transition: var(--transition); }
+.form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--accent-1); background: var(--bg-input-focus); box-shadow: 0 0 0 4px rgba(99,102,241,0.15); }
+.form-input::placeholder { color: var(--text-dim); }
+.form-input.readonly { background: var(--bg-secondary); color: var(--text-muted); cursor: not-allowed; }
+.form-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
+.form-hint { font-size: 0.7rem; color: var(--text-muted); margin-top: -0.25rem; }
+.price-display { background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.1) 100%); border: 2px solid var(--accent-1); border-radius: var(--radius-lg); padding: 1.25rem; text-align: center; position: relative; overflow: hidden; }
+.price-display::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient-primary); }
+.price-display .label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; font-weight: 600; }
+.price-display .value { font-size: 2rem; font-weight: 800; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.btn { padding: 0.875rem 1.5rem; border: none; border-radius: var(--radius-md); font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; font-family: inherit; }
+.btn-primary { background: var(--gradient-primary); color: white; box-shadow: 0 4px 15px rgba(99,102,241,0.35); }
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(99,102,241,0.45); }
+.btn-success { background: var(--gradient-success); color: white; box-shadow: 0 4px 15px rgba(16,185,129,0.35); }
+.btn-success:hover { transform: translateY(-3px); }
+.btn-danger { background: var(--gradient-danger); color: white; box-shadow: 0 4px 15px rgba(239,68,68,0.35); }
+.btn-danger:hover { transform: translateY(-3px); }
+.btn-warning { background: var(--gradient-warning); color: white; }
+.btn-secondary { background: var(--bg-input); color: var(--text-primary); border: 2px solid var(--border-color); }
+.btn-secondary:hover { border-color: var(--accent-1); }
+.btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; }
+.btn-lg { padding: 1rem 2rem; font-size: 1rem; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+.btn-group { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.table-container { overflow-x: auto; border-radius: var(--radius-lg); border: 1px solid var(--border-color); background: var(--bg-card); }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+th { background: var(--bg-input); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.75px; color: var(--text-secondary); font-weight: 700; white-space: nowrap; }
+tr:hover { background: rgba(99,102,241,0.05); }
+tr:last-child td { border-bottom: none; }
+td { font-size: 0.8rem; }
+.table-empty { text-align: center; padding: 3rem; color: var(--text-muted); }
+.badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; border-radius: 20px; font-size: 0.65rem; font-weight: 700; }
+.badge-primary { background: rgba(99,102,241,0.2); color: var(--accent-1); }
+.badge-success { background: rgba(16,185,129,0.2); color: var(--accent-success); }
+.badge-danger { background: rgba(239,68,68,0.2); color: var(--accent-danger); }
+.badge-warning { background: rgba(245,158,11,0.2); color: var(--accent-warning); }
+.badge-cyan { background: rgba(6,182,212,0.2); color: var(--accent-cyan); }
+.unit-section { margin-bottom: 2rem; }
+.unit-section-title { font-size: 1rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-color); }
+.unit-section-title .count { background: var(--bg-input); padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; }
+.unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.75rem; }
+.unit-card { background: var(--bg-card); border: 2px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; transition: var(--transition); cursor: pointer; position: relative; overflow: hidden; }
+.unit-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.unit-card.available { border-color: var(--accent-success); background: linear-gradient(135deg, rgba(16,185,129,0.08) 0%, transparent 100%); }
+.unit-card.occupied { border-color: var(--accent-danger); background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, transparent 100%); }
+.unit-card.checkout-soon { border-color: var(--accent-warning); background: linear-gradient(135deg, rgba(245,158,11,0.08) 0%, transparent 100%); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.8; } }
+.unit-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+.unit-number { font-weight: 800; font-size: 1.1rem; color: var(--text-primary); }
+.unit-type-badge { font-size: 0.6rem; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 700; background: var(--bg-input); color: var(--text-secondary); }
+.unit-status { font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.3rem; }
+.unit-card.available .unit-status { color: var(--accent-success); }
+.unit-card.occupied .unit-status { color: var(--accent-danger); }
+.unit-card.checkout-soon .unit-status { color: var(--accent-warning); }
+.unit-info { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); font-size: 0.7rem; color: var(--text-secondary); }
+.unit-guest { display: flex; align-items: center; gap: 0.3rem; margin-bottom: 0.25rem; }
+.unit-timer { display: flex; align-items: center; gap: 0.3rem; font-weight: 700; color: var(--accent-warning); }
+.filter-section { display: flex; flex-wrap: wrap; gap: 1rem; padding: 1.25rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-color); margin-bottom: 1.5rem; align-items: flex-end; }
+.filter-section .form-group { min-width: 160px; flex: 1; }
+.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; }
+.toast { padding: 1rem 1.5rem; border-radius: var(--radius-md); color: white; font-weight: 600; animation: toastSlideIn 0.4s cubic-bezier(0.4,0,0.2,1); display: flex; align-items: center; gap: 0.75rem; box-shadow: var(--shadow-lg); max-width: 400px; cursor: pointer; }
+.toast.success { background: linear-gradient(135deg, rgba(16,185,129,0.95), rgba(5,150,105,0.95)); }
+.toast.error { background: linear-gradient(135deg, rgba(239,68,68,0.95), rgba(220,38,38,0.95)); }
+.toast.warning { background: linear-gradient(135deg, rgba(245,158,11,0.95), rgba(217,119,6,0.95)); }
+.toast.info { background: linear-gradient(135deg, rgba(99,102,241,0.95), rgba(139,92,246,0.95)); }
+@keyframes toastSlideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 1rem; }
+.modal-overlay.active { display: flex; }
+.modal { background: var(--bg-card); border-radius: var(--radius-xl); max-width: 700px; width: 100%; max-height: 90vh; overflow: hidden; border: 1px solid var(--border-color); display: flex; flex-direction: column; }
+.modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-input); }
+.modal-title { font-size: 1.25rem; font-weight: 700; }
+.modal-close { width: 40px; height: 40px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 1.25rem; cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; }
+.modal-close:hover { background: var(--accent-danger); color: white; }
+.modal-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
+.modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 0.75rem; }
+.top-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.top-list-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-input); border-radius: var(--radius-md); }
+.top-list-item .rank { font-size: 1.25rem; margin-right: 0.75rem; }
+.top-list-item .name { flex: 1; font-weight: 600; }
+.top-list-item .value { font-weight: 700; color: var(--accent-1); }
+.checkout-alert { background: linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.1) 100%); border: 1px solid var(--accent-warning); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+.checkout-alert-icon { font-size: 2rem; animation: bounce 1s infinite; }
+@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.checkout-alert-content { flex: 1; }
+.checkout-alert-title { font-weight: 700; color: var(--accent-warning); margin-bottom: 0.25rem; }
+.checkout-alert-list { font-size: 0.85rem; color: var(--text-secondary); }
+.payment-split { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+.payment-split-item { text-align: center; padding: 1rem; background: var(--bg-input); border-radius: var(--radius-md); border: 1px solid var(--border-color); }
+.payment-split-item .icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+.payment-split-item .amount { font-size: 1.1rem; font-weight: 700; }
+.payment-split-item .label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; }
+.payment-split-item.cash .amount { color: var(--accent-success); }
+.payment-split-item.transfer .amount { color: var(--accent-1); }
+.payment-split-item.qr .amount { color: var(--accent-cyan); }
+.empty-state { text-align: center; padding: 2rem; color: var(--text-muted); }
+.empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+.empty-state-text { font-size: 0.9rem; }
+@media (max-width: 768px) {
+.header-content { flex-direction: column; }
+.header-info { width: 100%; justify-content: space-between; }
+.nav-btn { padding: 0.875rem 1rem; font-size: 0.8rem; }
+.main { padding: 1rem; }
+.form-grid { grid-template-columns: 1fr; }
+.unit-grid { grid-template-columns: repeat(2, 1fr); }
+.payment-split { grid-template-columns: 1fr; }
+}
+@media print {
+.header, .nav, .filter-section, .btn, .toast-container, .connection-status, .quick-actions { display: none !important; }
+body { background: white; color: black; }
+.stat-value { -webkit-text-fill-color: black !important; }
+}
+</style>
 </head>
 <body>
-
-<div class="connection-status online" id="connectionStatus">🟢 Online</div>
+<div class="connection-status connecting" id="connectionStatus">🟡 Connecting...</div>
 <div class="toast-container" id="toastContainer"></div>
-
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title" id="modalTitle">Detail</div>
-            <button class="modal-close" onclick="closeModal()">✕</button>
-        </div>
-        <div class="modal-body" id="modalBody"></div>
-        <div class="modal-footer" id="modalFooter"></div>
-    </div>
+<div class="modal">
+<div class="modal-header">
+<div class="modal-title" id="modalTitle">Detail</div>
+<button class="modal-close" onclick="closeModal()">✕</button>
 </div>
-
+<div class="modal-body" id="modalBody"></div>
+<div class="modal-footer" id="modalFooter"></div>
+</div>
+</div>
 <div class="header">
-    <div class="header-content">
-        <div class="logo">
-            <div class="logo-icon">🏠</div>
-            <div class="logo-text">
-                <div class="logo-title">Rental Management</div>
-                <div class="logo-subtitle">APARTMENT SYSTEM</div>
-            </div>
-        </div>
-        <div class="header-info">
-            <div class="header-stat">
-                <div class="header-stat-label">Unit Tersedia</div>
-                <div class="header-stat-value" id="headerAvailable">31</div>
-            </div>
-            <div class="header-stat">
-                <div class="header-stat-label">Saldo Hari Ini</div>
-                <div class="header-stat-value" id="headerSaldo">Rp 0</div>
-            </div>
-            <div class="header-time">
-                <div class="header-date" id="headerDate"></div>
-                <div class="header-clock" id="headerClock"></div>
-            </div>
-        </div>
-    </div>
+<div class="header-content">
+<div class="logo">
+<div class="logo-icon">🏠</div>
+<div class="logo-text">
+<div class="logo-title">Rental Management</div>
+<div class="logo-subtitle">APARTMENT SYSTEM</div>
 </div>
-
+</div>
+<div class="header-info">
+<div class="header-stat">
+<div class="header-stat-label">Unit Tersedia</div>
+<div class="header-stat-value" id="headerAvailable">0</div>
+</div>
+<div class="header-stat">
+<div class="header-stat-label">Saldo Hari Ini</div>
+<div class="header-stat-value" id="headerSaldo">Rp 0</div>
+</div>
+<div class="header-time">
+<div class="header-date" id="headerDate"></div>
+<div class="header-clock" id="headerClock"></div>
+</div>
+</div>
+</div>
+</div>
 <nav class="nav">
-    <div class="nav-content">
-        <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
-        <button class="nav-btn" data-tab="rental" onclick="switchTab('rental')">🏠 Input Sewa</button>
-        <button class="nav-btn" data-tab="transaction" onclick="switchTab('transaction')">💰 Transaksi</button>
-        <button class="nav-btn" data-tab="units" onclick="switchTab('units')">🏢 Unit<span class="badge-count" id="checkoutBadge" style="display:none">0</span></button>
-        <button class="nav-btn" data-tab="history" onclick="switchTab('history')">📋 Riwayat</button>
-        <button class="nav-btn" data-tab="report" onclick="switchTab('report')">📈 Laporan</button>
-    </div>
+<div class="nav-content">
+<button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+<button class="nav-btn" data-tab="rental" onclick="switchTab('rental')">🏠 Input Sewa</button>
+<button class="nav-btn" data-tab="transaction" onclick="switchTab('transaction')">💰 Transaksi</button>
+<button class="nav-btn" data-tab="units" onclick="switchTab('units')">🏢 Unit<span class="badge-count" id="checkoutBadge" style="display:none">0</span></button>
+<button class="nav-btn" data-tab="history" onclick="switchTab('history')">📋 Riwayat</button>
+<button class="nav-btn" data-tab="report" onclick="switchTab('report')">📈 Laporan</button>
+</div>
 </nav>
-
 <div class="main">
-
 <!-- DASHBOARD -->
 <div id="dashboard" class="tab-content active">
-    <div class="checkout-alert" id="checkoutAlert" style="display:none">
-        <div class="checkout-alert-icon">⚠️</div>
-        <div class="checkout-alert-content">
-            <div class="checkout-alert-title">Unit Segera Checkout!</div>
-            <div class="checkout-alert-list" id="checkoutAlertList"></div>
-        </div>
-        <button class="btn btn-warning btn-sm" onclick="switchTab('units')">Lihat Unit →</button>
-    </div>
-    <div class="quick-actions">
-        <button class="quick-action-btn success" onclick="switchTab('rental')">➕ Input Sewa Baru</button>
-        <button class="quick-action-btn" onclick="switchTab('transaction')">💵 Tambah Pemasukan</button>
-        <button class="quick-action-btn danger" onclick="switchTab('transaction')">💸 Tambah Pengeluaran</button>
-        <button class="quick-action-btn" onclick="exportDailyReport()">📥 Export Hari Ini</button>
-        <button class="quick-action-btn" onclick="window.print()">🖨️ Print</button>
-    </div>
-    <div class="dashboard-grid">
-        <div class="stat-card"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">💰 Saldo Hari Ini</div><div class="stat-value" id="todaySaldo">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item cash">💵 <span id="todayCash">0</span></div><div class="stat-breakdown-item transfer">🏦 <span id="todayTransfer">0</span></div><div class="stat-breakdown-item qr">📱 <span id="todayQR">0</span></div></div></div><div class="stat-icon">💵</div></div></div>
-        <div class="stat-card success"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">📥 Pemasukan Hari Ini</div><div class="stat-value" id="todayIncome">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item">🏠 Sewa: <span id="todayRentalIncome">0</span></div><div class="stat-breakdown-item">📦 Lain: <span id="todayOtherIncome">0</span></div></div></div><div class="stat-icon">📈</div></div></div>
-        <div class="stat-card danger"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">📤 Pengeluaran Hari Ini</div><div class="stat-value" id="todayExpense">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item" id="topExpenseCategory">-</div></div></div><div class="stat-icon">📉</div></div></div>
-        <div class="stat-card cyan"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">👥 Tamu Hari Ini</div><div class="stat-value" id="todayGuests">0</div><div class="stat-breakdown"><div class="stat-breakdown-item">🏠 <span id="todayUnitsUsed">0</span> unit terpakai</div></div></div><div class="stat-icon">👥</div></div></div>
-        <div class="stat-card warning"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">💸 Fee Marketing Pending</div><div class="stat-value" id="unpaidFee">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item" id="feeBreakdown">-</div></div></div><div class="stat-icon">💳</div></div></div>
-        <div class="stat-card"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">📅 Saldo Bulan Ini</div><div class="stat-value" id="monthSaldo">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item">👥 <span id="monthGuests">0</span> total tamu</div></div></div><div class="stat-icon">📆</div></div></div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;">
-        <div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon warning">🏆</div>Top Marketing Hari Ini</div></div><div class="top-list" id="topMarketing"><div class="empty-state"><div class="empty-state-text">Belum ada data</div></div></div></div>
-        <div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon danger">🔥</div>Unit Terlaris Hari Ini</div></div><div class="top-list" id="topUnits"><div class="empty-state"><div class="empty-state-text">Belum ada data</div></div></div></div>
-        <div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon cyan">⏱️</div>Durasi Populer Hari Ini</div></div><div class="top-list" id="topDurations"><div class="empty-state"><div class="empty-state-text">Belum ada data</div></div></div></div>
-    </div>
+<div class="checkout-alert" id="checkoutAlert" style="display:none">
+<div class="checkout-alert-icon">⚠️</div>
+<div class="checkout-alert-content">
+<div class="checkout-alert-title">Unit Segera Checkout!</div>
+<div class="checkout-alert-list" id="checkoutAlertList"></div>
 </div>
-
+<button class="btn btn-warning btn-sm" onclick="switchTab('units')">Lihat Unit →</button>
+</div>
+<div class="quick-actions">
+<button class="quick-action-btn success" onclick="switchTab('rental')">➕ Input Sewa Baru</button>
+<button class="quick-action-btn" onclick="switchTab('transaction')">💵 Tambah Pemasukan</button>
+<button class="quick-action-btn danger" onclick="switchTab('transaction')">💸 Tambah Pengeluaran</button>
+<button class="quick-action-btn" onclick="exportDailyReport()">📥 Export Hari Ini</button>
+<button class="quick-action-btn" onclick="window.print()">🖨️ Print</button>
+</div>
+<div class="dashboard-grid">
+<div class="stat-card"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">💰 Saldo Hari Ini</div><div class="stat-value" id="todaySaldo">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item cash">💵 <span id="todayCash">0</span></div><div class="stat-breakdown-item transfer">🏦 <span id="todayTransfer">0</span></div><div class="stat-breakdown-item qr">📱 <span id="todayQR">0</span></div></div></div><div class="stat-icon">💵</div></div></div>
+<div class="stat-card success"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">📥 Pemasukan Hari Ini</div><div class="stat-value" id="todayIncome">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item">🏠 Sewa: <span id="todayRentalIncome">0</span></div><div class="stat-breakdown-item">📦 Lain: <span id="todayOtherIncome">0</span></div></div></div><div class="stat-icon">📈</div></div></div>
+<div class="stat-card danger"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">📤 Pengeluaran Hari Ini</div><div class="stat-value" id="todayExpense">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item" id="topExpenseCategory">-</div></div></div><div class="stat-icon">📉</div></div></div>
+<div class="stat-card cyan"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">👥 Tamu Hari Ini</div><div class="stat-value" id="todayGuests">0</div><div class="stat-breakdown"><div class="stat-breakdown-item">🏠 <span id="todayUnitsUsed">0</span> unit terpakai</div></div></div><div class="stat-icon">👥</div></div></div>
+<div class="stat-card warning"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">💸 Fee Marketing Pending</div><div class="stat-value" id="unpaidFee">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item" id="feeBreakdown">-</div></div></div><div class="stat-icon">💳</div></div></div>
+<div class="stat-card"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">📅 Saldo Bulan Ini</div><div class="stat-value" id="monthSaldo">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item">👥 <span id="monthGuests">0</span> total tamu</div></div></div><div class="stat-icon">📆</div></div></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;">
+<div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon warning">🏆</div>Top Marketing Hari Ini</div></div><div class="top-list" id="topMarketing"><div class="empty-state"><div class="empty-state-text">Belum ada data</div></div></div></div>
+<div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon danger">🔥</div>Unit Terlaris Hari Ini</div></div><div class="top-list" id="topUnits"><div class="empty-state"><div class="empty-state-text">Belum ada data</div></div></div></div>
+<div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon cyan">⏱️</div>Durasi Populer Hari Ini</div></div><div class="top-list" id="topDurations"><div class="empty-state"><div class="empty-state-text">Belum ada data</div></div></div></div>
+</div>
+</div>
 <!-- RENTAL -->
 <div id="rental" class="tab-content">
-    <div class="card">
-        <div class="card-header"><div class="card-title"><div class="card-title-icon primary">🏠</div>Input Data Penyewaan Unit</div><button class="btn btn-secondary btn-sm" onclick="resetRentalForm()">🔄 Reset</button></div>
-        <form id="rentalForm">
-            <div class="form-grid" style="margin-bottom:1.5rem">
-                <div class="form-group"><label class="form-label">Tipe Unit <span class="required">*</span></label><select class="form-select" id="unitType" required><option value="">Pilih Tipe</option><option value="Studio">Studio (16 unit)</option><option value="1BR">1 Bedroom (9 unit)</option><option value="2BR">2 Bedroom (6 unit)</option></select></div>
-                <div class="form-group"><label class="form-label">Nomor Unit <span class="required">*</span></label><select class="form-select" id="unitNumber" required><option value="">Pilih Unit</option></select></div>
-                <div class="form-group"><label class="form-label">Marketing <span class="required">*</span></label><select class="form-select" id="marketing" required><option value="">Pilih Marketing</option><option value="Raisya">Raisya</option><option value="Ibu">Ibu</option><option value="Security">Security</option><option value="Sani">Sani</option><option value="Ari">Ari</option><option value="Iwa">Iwa</option><option value="DS">DS (Datang Sendiri)</option><option value="other">Lainnya...</option></select></div>
-                <div class="form-group" id="otherMarketingGroup" style="display:none"><label class="form-label">Nama Marketing</label><input type="text" class="form-input" id="otherMarketing" placeholder="Ketik nama..."></div>
-            </div>
-            <div class="form-grid" style="margin-bottom:1.5rem">
-                <div class="form-group"><label class="form-label">Durasi <span class="required">*</span></label><select class="form-select" id="duration" required><option value="">Pilih Durasi</option><optgroup label="⚡ Charge"><option value="1J">1 Jam (Charge)</option><option value="2J">2 Jam (Charge)</option></optgroup><optgroup label="🕐 Regular"><option value="3J">3 Jam</option><option value="4J">4 Jam</option><option value="5J">5 Jam</option><option value="6J">6 Jam</option><option value="7J">7 Jam</option><option value="8J">8 Jam</option></optgroup><optgroup label="🌙 Special"><option value="PM">PM (Promo Malam)</option><option value="FD">Fullday (24 Jam)</option></optgroup></select><div class="form-hint" id="durationHint"></div></div>
-                <div class="form-group"><label class="form-label">Check-in <span class="required">*</span></label><input type="time" class="form-input" id="checkIn" required></div>
-                <div class="form-group"><label class="form-label">Check-out (Auto)</label><input type="time" class="form-input readonly" id="checkOut" readonly></div>
-                <div class="form-group"><label class="form-label">Tipe Harga <span class="required">*</span></label><select class="form-select" id="priceType" required><option value="weekday">Weekday</option><option value="weekend">Weekend</option><option value="custom">Custom</option></select></div>
-                <div class="form-group"><label class="form-label">Harga Dasar</label><input type="number" class="form-input" id="basePrice" placeholder="0"><div class="form-hint">Harga standar referensi</div></div>
-            </div>
-            <div style="background:var(--bg-input);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem">
-                <h3 style="margin-bottom:1rem;font-size:1rem">💳 Pembayaran Diterima Kantor</h3>
-                <div class="form-grid">
-                    <div class="form-group"><label class="form-label">💵 Cash</label><input type="number" class="form-input" id="cashAmount" placeholder="0" value="0"></div>
-                    <div class="form-group"><label class="form-label">🏦 Transfer</label><input type="number" class="form-input" id="transferAmount" placeholder="0" value="0"></div>
-                    <div class="form-group"><label class="form-label">📱 QRIS</label><input type="number" class="form-input" id="qrAmount" placeholder="0" value="0"></div>
-                </div>
-                <div class="price-display" style="margin-top:1rem"><div class="label">Total Pembayaran Masuk Saldo</div><div class="value" id="totalPayment">Rp 0</div></div>
-            </div>
-            <div class="form-grid">
-                <div class="form-group"><label class="form-label">Rekening Bank</label><select class="form-select" id="bankAccount"><option value="">- Pilih jika Transfer -</option><option>BCA</option><option>Mandiri</option><option>BRI</option><option>BNI</option><option>Dana</option><option>OVO</option><option>GoPay</option></select></div>
-                <div class="form-group"><label class="form-label">Fee Marketing</label><input type="number" class="form-input" id="marketingFee" placeholder="0" value="0"><div class="form-hint">Isi 0 jika fee sudah dipotong</div></div>
-                <div class="form-group"><label class="form-label">Status Bayar</label><select class="form-select" id="paymentStatus"><option value="Lunas">✅ Lunas</option><option value="Belum Lunas">⏳ Belum Lunas</option></select></div>
-                <div class="form-group"><label class="form-label">Identitas Tamu</label><input type="text" class="form-input" id="guestIdentity" placeholder="Nama / STNK / KTP"></div>
-                <div class="form-group full-width"><label class="form-label">Keterangan</label><input type="text" class="form-input" id="rentalNotes" placeholder="Catatan tambahan..."></div>
-            </div>
-            <div class="btn-group" style="margin-top:1.5rem"><button type="submit" class="btn btn-primary btn-lg">💾 Simpan Penyewaan</button><button type="button" class="btn btn-secondary" onclick="resetRentalForm()">🔄 Reset</button></div>
-        </form>
-    </div>
+<div class="card">
+<div class="card-header"><div class="card-title"><div class="card-title-icon primary">🏠</div>Input Data Penyewaan Unit</div><button class="btn btn-secondary btn-sm" onclick="resetRentalForm()">🔄 Reset</button></div>
+<form id="rentalForm">
+<div class="form-grid" style="margin-bottom:1.5rem">
+<div class="form-group"><label class="form-label">Tipe Unit <span class="required">*</span></label><select class="form-select" id="unitType" required><option value="">Pilih Tipe</option><option value="Studio">Studio (16 unit)</option><option value="1BR">1 Bedroom (9 unit)</option><option value="2BR">2 Bedroom (6 unit)</option></select></div>
+<div class="form-group"><label class="form-label">Nomor Unit <span class="required">*</span></label><select class="form-select" id="unitNumber" required><option value="">Pilih Unit</option></select></div>
+<div class="form-group"><label class="form-label">Marketing <span class="required">*</span></label><select class="form-select" id="marketing" required><option value="">Pilih Marketing</option><option value="Raisya">Raisya</option><option value="Ibu">Ibu</option><option value="Security">Security</option><option value="Sani">Sani</option><option value="Ari">Ari</option><option value="Iwa">Iwa</option><option value="DS">DS (Datang Sendiri)</option><option value="other">Lainnya...</option></select></div>
+<div class="form-group" id="otherMarketingGroup" style="display:none"><label class="form-label">Nama Marketing</label><input type="text" class="form-input" id="otherMarketing" placeholder="Ketik nama..."></div>
 </div>
-
+<div class="form-grid" style="margin-bottom:1.5rem">
+<div class="form-group"><label class="form-label">Durasi <span class="required">*</span></label><select class="form-select" id="duration" required><option value="">Pilih Durasi</option><optgroup label="⚡ Charge"><option value="1J">1 Jam (Charge)</option><option value="2J">2 Jam (Charge)</option></optgroup><optgroup label="🕐 Regular"><option value="3J">3 Jam</option><option value="4J">4 Jam</option><option value="5J">5 Jam</option><option value="6J">6 Jam</option><option value="7J">7 Jam</option><option value="8J">8 Jam</option></optgroup><optgroup label="🌙 Special"><option value="PM">PM (Promo Malam)</option><option value="FD">Fullday (24 Jam)</option></optgroup></select><div class="form-hint" id="durationHint"></div></div>
+<div class="form-group"><label class="form-label">Check-in <span class="required">*</span></label><input type="time" class="form-input" id="checkIn" required></div>
+<div class="form-group"><label class="form-label">Check-out (Auto)</label><input type="time" class="form-input readonly" id="checkOut" readonly></div>
+<div class="form-group"><label class="form-label">Tipe Harga <span class="required">*</span></label><select class="form-select" id="priceType" required><option value="weekday">Weekday</option><option value="weekend">Weekend</option><option value="custom">Custom</option></select></div>
+<div class="form-group"><label class="form-label">Harga Dasar</label><input type="number" class="form-input" id="basePrice" placeholder="0"><div class="form-hint">Harga standar referensi</div></div>
+</div>
+<div style="background:var(--bg-input);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem">
+<h3 style="margin-bottom:1rem;font-size:1rem">💳 Pembayaran Diterima Kantor</h3>
+<div class="form-grid">
+<div class="form-group"><label class="form-label">💵 Cash</label><input type="number" class="form-input" id="cashAmount" placeholder="0" value="0"></div>
+<div class="form-group"><label class="form-label">🏦 Transfer</label><input type="number" class="form-input" id="transferAmount" placeholder="0" value="0"></div>
+<div class="form-group"><label class="form-label">📱 QRIS</label><input type="number" class="form-input" id="qrAmount" placeholder="0" value="0"></div>
+</div>
+<div class="price-display" style="margin-top:1rem"><div class="label">Total Pembayaran Masuk Saldo</div><div class="value" id="totalPayment">Rp 0</div></div>
+</div>
+<div class="form-grid">
+<div class="form-group"><label class="form-label">Rekening Bank</label><select class="form-select" id="bankAccount"><option value="">- Pilih jika Transfer -</option><option>BCA</option><option>Mandiri</option><option>BRI</option><option>BNI</option><option>Dana</option><option>OVO</option><option>GoPay</option></select></div>
+<div class="form-group"><label class="form-label">Fee Marketing</label><input type="number" class="form-input" id="marketingFee" placeholder="0" value="0"><div class="form-hint">Isi 0 jika fee sudah dipotong</div></div>
+<div class="form-group"><label class="form-label">Status Bayar</label><select class="form-select" id="paymentStatus"><option value="Lunas">✅ Lunas</option><option value="Belum Lunas">⏳ Belum Lunas</option></select></div>
+<div class="form-group"><label class="form-label">Identitas Tamu</label><input type="text" class="form-input" id="guestIdentity" placeholder="Nama / STNK / KTP"></div>
+<div class="form-group full-width"><label class="form-label">Keterangan</label><input type="text" class="form-input" id="rentalNotes" placeholder="Catatan tambahan..."></div>
+</div>
+<div class="btn-group" style="margin-top:1.5rem"><button type="submit" class="btn btn-primary btn-lg">💾 Simpan Penyewaan</button><button type="button" class="btn btn-secondary" onclick="resetRentalForm()">🔄 Reset</button></div>
+</form>
+</div>
+</div>
 <!-- TRANSACTION -->
 <div id="transaction" class="tab-content">
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:1.5rem">
-        <div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon success">📥</div>Tambah Pemasukan</div></div>
-            <form id="incomeForm"><div class="form-grid"><div class="form-group full-width"><label class="form-label">Sumber <span class="required">*</span></label><input type="text" class="form-input" id="incomeSource" placeholder="Contoh: Setoran Jarrdin, Bonus" required></div><div class="form-group"><label class="form-label">Nominal <span class="required">*</span></label><input type="number" class="form-input" id="incomeAmount" placeholder="0" required></div><div class="form-group"><label class="form-label">Metode <span class="required">*</span></label><select class="form-select" id="incomeMethod" required><option value="Cash">💵 Cash</option><option value="Transfer">🏦 Transfer</option><option value="QR">📱 QRIS</option></select></div><div class="form-group full-width"><label class="form-label">Keterangan</label><input type="text" class="form-input" id="incomeNotes" placeholder="Detail..."></div></div><button type="submit" class="btn btn-success" style="margin-top:1rem;width:100%">➕ Tambah Pemasukan</button></form>
-        </div>
-        <div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon danger">📤</div>Tambah Pengeluaran</div></div>
-            <form id="expenseForm"><div class="form-grid"><div class="form-group"><label class="form-label">Kategori <span class="required">*</span></label><select class="form-select" id="expenseCategory" required><option value="">Pilih</option><option value="UM">🍱 UM</option><option value="Gaji">💰 Gaji</option><option value="Kasbon">💸 Kasbon</option><option value="Supplies">📦 Supplies</option><option value="Maintenance">🔧 Maintenance</option><option value="Utilitas">💡 Utilitas</option><option value="Abodemen">📋 Abodemen</option><option value="Top Up Link">🔗 Top Up Link</option><option value="Setoran Kantor">🏢 Setoran Kantor</option><option value="Fee Marketing">🎯 Fee Marketing</option><option value="Lainnya">📝 Lainnya</option></select></div><div class="form-group"><label class="form-label">Penerima <span class="required">*</span></label><input type="text" class="form-input" id="expenseRecipient" placeholder="Nama" required></div><div class="form-group"><label class="form-label">Nominal <span class="required">*</span></label><input type="number" class="form-input" id="expenseAmount" placeholder="0" required></div><div class="form-group"><label class="form-label">Metode <span class="required">*</span></label><select class="form-select" id="expenseMethod" required><option value="Cash">💵 Cash</option><option value="Transfer">🏦 Transfer</option><option value="QR">📱 QRIS</option></select></div><div class="form-group full-width"><label class="form-label">Keterangan</label><input type="text" class="form-input" id="expenseNotes" placeholder="Detail..."></div></div><button type="submit" class="btn btn-danger" style="margin-top:1rem;width:100%">➖ Tambah Pengeluaran</button></form>
-        </div>
-    </div>
-    <div class="card" style="margin-top:1.5rem"><div class="card-header"><div class="card-title"><div class="card-title-icon primary">📋</div>Transaksi Terbaru</div></div><div class="table-container" style="max-height:400px;overflow-y:auto"><table><thead><tr><th>Waktu</th><th>Jenis</th><th>Keterangan</th><th>Metode</th><th>Nominal</th></tr></thead><tbody id="recentTransactions"></tbody></table></div></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:1.5rem">
+<div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon success">📥</div>Tambah Pemasukan</div></div>
+<form id="incomeForm"><div class="form-grid"><div class="form-group full-width"><label class="form-label">Sumber <span class="required">*</span></label><input type="text" class="form-input" id="incomeSource" placeholder="Contoh: Setoran Jarrdin, Bonus" required></div><div class="form-group"><label class="form-label">Nominal <span class="required">*</span></label><input type="number" class="form-input" id="incomeAmount" placeholder="0" required></div><div class="form-group"><label class="form-label">Metode <span class="required">*</span></label><select class="form-select" id="incomeMethod" required><option value="Cash">💵 Cash</option><option value="Transfer">🏦 Transfer</option><option value="QR">📱 QRIS</option></select></div><div class="form-group full-width"><label class="form-label">Keterangan</label><input type="text" class="form-input" id="incomeNotes" placeholder="Detail..."></div></div><button type="submit" class="btn btn-success" style="margin-top:1rem;width:100%">➕ Tambah Pemasukan</button></form>
 </div>
-
+<div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon danger">📤</div>Tambah Pengeluaran</div></div>
+<form id="expenseForm"><div class="form-grid"><div class="form-group"><label class="form-label">Kategori <span class="required">*</span></label><select class="form-select" id="expenseCategory" required><option value="">Pilih</option><option value="UM">🍱 UM</option><option value="Gaji">💰 Gaji</option><option value="Kasbon">💸 Kasbon</option><option value="Supplies">📦 Supplies</option><option value="Maintenance">🔧 Maintenance</option><option value="Utilitas">💡 Utilitas</option><option value="Abodemen">📋 Abodemen</option><option value="Top Up Link">🔗 Top Up Link</option><option value="Setoran Kantor">🏢 Setoran Kantor</option><option value="Fee Marketing">🎯 Fee Marketing</option><option value="Lainnya">📝 Lainnya</option></select></div><div class="form-group"><label class="form-label">Penerima <span class="required">*</span></label><input type="text" class="form-input" id="expenseRecipient" placeholder="Nama" required></div><div class="form-group"><label class="form-label">Nominal <span class="required">*</span></label><input type="number" class="form-input" id="expenseAmount" placeholder="0" required></div><div class="form-group"><label class="form-label">Metode <span class="required">*</span></label><select class="form-select" id="expenseMethod" required><option value="Cash">💵 Cash</option><option value="Transfer">🏦 Transfer</option><option value="QR">📱 QRIS</option></select></div><div class="form-group full-width"><label class="form-label">Keterangan</label><input type="text" class="form-input" id="expenseNotes" placeholder="Detail..."></div></div><button type="submit" class="btn btn-danger" style="margin-top:1rem;width:100%">➖ Tambah Pengeluaran</button></form>
+</div>
+</div>
+<div class="card" style="margin-top:1.5rem"><div class="card-header"><div class="card-title"><div class="card-title-icon primary">📋</div>Transaksi Terbaru</div></div><div class="table-container" style="max-height:400px;overflow-y:auto"><table><thead><tr><th>Waktu</th><th>Jenis</th><th>Keterangan</th><th>Metode</th><th>Nominal</th></tr></thead><tbody id="recentTransactions"></tbody></table></div></div>
+</div>
 <!-- UNITS -->
 <div id="units" class="tab-content">
-    <div class="filter-section">
-        <div class="form-group" style="flex:2"><label class="form-label">🔍 Cari Unit</label><input type="text" class="form-input" id="searchUnit" placeholder="Ketik nomor unit..." oninput="renderUnitGrid()"></div>
-        <div class="form-group"><label class="form-label">Tipe</label><select class="form-select" id="filterUnitType" onchange="renderUnitGrid()"><option value="">Semua</option><option value="Studio">Studio</option><option value="1BR">1BR</option><option value="2BR">2BR</option></select></div>
-        <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="filterUnitStatus" onchange="renderUnitGrid()"><option value="">Semua</option><option value="available">✅ Tersedia</option><option value="occupied">🔴 Terisi</option><option value="checkout-soon">⚠️ Segera CO</option></select></div>
-    </div>
-    <div class="dashboard-grid" style="margin-bottom:1.5rem">
-        <div class="stat-card success"><div class="stat-label">✅ Tersedia</div><div class="stat-value" id="availableCount">0</div></div>
-        <div class="stat-card danger"><div class="stat-label">🔴 Terisi</div><div class="stat-value" id="occupiedCount">0</div></div>
-        <div class="stat-card warning"><div class="stat-label">⚠️ Segera CO</div><div class="stat-value" id="checkoutSoonCountStat">0</div></div>
-    </div>
-    <div id="unitGridContainer"></div>
+<div class="card">
+<div class="card-header"><div class="card-title"><div class="card-title-icon cyan">🏢</div>Manajemen Unit</div></div>
+<div class="form-grid" style="padding: 1rem;">
+<div class="form-group">
+<label class="form-label">➕ Tambah Unit Baru</label>
+<input type="text" class="form-input" id="newUnitNumber" placeholder="Contoh: TA1123">
+<select class="form-select" id="newUnitType"><option value="">Pilih Tipe</option><option value="Studio">Studio</option><option value="1BR">1BR</option><option value="2BR">2BR</option></select>
+<button class="btn btn-success btn-sm" onclick="handleAddUnit()">Tambah</button>
+</div>
+<div class="form-group">
+<label class="form-label">🗑️ Hapus Unit</label>
+<input type="text" class="form-input" id="removeUnitNumber" placeholder="Ketik nomor unit">
+<button class="btn btn-danger btn-sm" onclick="handleRemoveUnit()">Hapus</button>
+</div>
+</div>
+<div class="form-hint" style="padding: 0 1rem 1rem;">Gunakan dengan hati-hati. Unit yang sedang disewa tidak dapat dihapus.</div>
 </div>
 
+<div class="filter-section">
+<div class="form-group" style="flex:2"><label class="form-label">🔍 Cari Unit</label><input type="text" class="form-input" id="searchUnit" placeholder="Ketik nomor unit..." oninput="renderUnitGrid()"></div>
+<div class="form-group"><label class="form-label">Tipe</label><select class="form-select" id="filterUnitType" onchange="renderUnitGrid()"><option value="">Semua</option><option value="Studio">Studio</option><option value="1BR">1BR</option><option value="2BR">2BR</option></select></div>
+<div class="form-group"><label class="form-label">Status</label><select class="form-select" id="filterUnitStatus" onchange="renderUnitGrid()"><option value="">Semua</option><option value="available">✅ Tersedia</option><option value="occupied">🔴 Terisi</option><option value="checkout-soon">⚠️ Segera CO</option></select></div>
+</div>
+<div class="dashboard-grid" style="margin-bottom:1.5rem">
+<div class="stat-card success"><div class="stat-label">✅ Tersedia</div><div class="stat-value" id="availableCount">0</div></div>
+<div class="stat-card danger"><div class="stat-label">🔴 Terisi</div><div class="stat-value" id="occupiedCount">0</div></div>
+<div class="stat-card warning"><div class="stat-label">⚠️ Segera CO</div><div class="stat-value" id="checkoutSoonCountStat">0</div></div>
+</div>
+<div id="unitGridContainer"></div>
+</div>
 <!-- HISTORY -->
 <div id="history" class="tab-content">
-    <div class="filter-section">
-        <div class="form-group"><label class="form-label">📅 Tanggal</label><input type="date" class="form-input" id="filterDate"></div>
-        <div class="form-group"><label class="form-label">📂 Jenis</label><select class="form-select" id="filterType"><option value="">Semua</option><option value="rental">🏠 Sewa</option><option value="income">📥 Pemasukan</option><option value="expense">📤 Pengeluaran</option></select></div>
-        <div class="form-group"><label class="form-label">👤 Marketing</label><select class="form-select" id="filterMarketing"><option value="">Semua</option><option>Raisya</option><option>Ibu</option><option>Security</option><option>Sani</option><option>Ari</option><option>Iwa</option><option>DS</option></select></div>
-        <div class="form-group"><label class="form-label">&nbsp;</label><div class="btn-group"><button class="btn btn-primary btn-sm" onclick="applyFilters()">🔍 Filter</button><button class="btn btn-secondary btn-sm" onclick="clearFilters()">✖️ Clear</button><button class="btn btn-success btn-sm" onclick="exportCSV()">📥 Export</button></div></div>
-    </div>
-    <div class="dashboard-grid" style="margin-bottom:1rem">
-        <div class="stat-card success" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Masuk</div><div class="stat-value" id="historyTotalIn" style="font-size:1.25rem">Rp 0</div></div>
-        <div class="stat-card danger" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Keluar</div><div class="stat-value" id="historyTotalOut" style="font-size:1.25rem">Rp 0</div></div>
-        <div class="stat-card" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Saldo</div><div class="stat-value" id="historyNet" style="font-size:1.25rem">Rp 0</div></div>
-        <div class="stat-card cyan" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Record</div><div class="stat-value" id="historyCount" style="font-size:1.25rem">0</div></div>
-    </div>
-    <div class="table-container"><table><thead><tr><th>#</th><th>Waktu</th><th>Jenis</th><th>Unit/Sumber</th><th>Marketing</th><th>Durasi</th><th>Total</th><th>Metode</th><th>Ket</th><th>Aksi</th></tr></thead><tbody id="historyTable"></tbody></table></div>
+<div class="filter-section">
+<div class="form-group"><label class="form-label">📅 Tanggal</label><input type="date" class="form-input" id="filterDate"></div>
+<div class="form-group"><label class="form-label">📂 Jenis</label><select class="form-select" id="filterType"><option value="">Semua</option><option value="rental">🏠 Sewa</option><option value="income">📥 Pemasukan</option><option value="expense">📤 Pengeluaran</option></select></div>
+<div class="form-group"><label class="form-label">👤 Marketing</label><select class="form-select" id="filterMarketing"><option value="">Semua</option><option>Raisya</option><option>Ibu</option><option>Security</option><option>Sani</option><option>Ari</option><option>Iwa</option><option>DS</option></select></div>
+<div class="form-group"><label class="form-label">&nbsp;</label><div class="btn-group"><button class="btn btn-primary btn-sm" onclick="applyFilters()">🔍 Filter</button><button class="btn btn-secondary btn-sm" onclick="clearFilters()">✖️ Clear</button><button class="btn btn-success btn-sm" onclick="exportCSV()">📥 Export</button></div></div>
 </div>
-
+<div class="dashboard-grid" style="margin-bottom:1rem">
+<div class="stat-card success" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Masuk</div><div class="stat-value" id="historyTotalIn" style="font-size:1.25rem">Rp 0</div></div>
+<div class="stat-card danger" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Keluar</div><div class="stat-value" id="historyTotalOut" style="font-size:1.25rem">Rp 0</div></div>
+<div class="stat-card" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Saldo</div><div class="stat-value" id="historyNet" style="font-size:1.25rem">Rp 0</div></div>
+<div class="stat-card cyan" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Record</div><div class="stat-value" id="historyCount" style="font-size:1.25rem">0</div></div>
+</div>
+<div class="table-container"><table><thead><tr><th>#</th><th>Waktu</th><th>Jenis</th><th>Unit/Sumber</th><th>Marketing</th><th>Durasi</th><th>Total</th><th>Metode</th><th>Ket</th><th>Aksi</th></tr></thead><tbody id="historyTable"></tbody></table></div>
+</div>
 <!-- REPORT -->
 <div id="report" class="tab-content">
-    <div class="card">
-        <div class="card-header"><div class="card-title"><div class="card-title-icon primary">📈</div>Generate Laporan</div></div>
-        <div class="form-grid">
-            <div class="form-group"><label class="form-label">Dari Tanggal</label><input type="date" class="form-input" id="reportStart"></div>
-            <div class="form-group"><label class="form-label">Sampai Tanggal</label><input type="date" class="form-input" id="reportEnd"></div>
-            <div class="form-group"><label class="form-label">&nbsp;</label><div class="btn-group"><button class="btn btn-primary" onclick="generateReport()">📊 Generate</button><button class="btn btn-success" onclick="exportReport()">📥 Export</button></div></div>
-        </div>
-    </div>
-    <div id="reportResults" style="display:none;margin-top:1.5rem">
-        <div class="dashboard-grid">
-            <div class="stat-card success"><div class="stat-label">📥 Total Pemasukan</div><div class="stat-value" id="reportIncome">Rp 0</div></div>
-            <div class="stat-card danger"><div class="stat-label">📤 Total Pengeluaran</div><div class="stat-value" id="reportExpense">Rp 0</div></div>
-            <div class="stat-card"><div class="stat-label">💰 Saldo Bersih</div><div class="stat-value" id="reportNet">Rp 0</div></div>
-            <div class="stat-card cyan"><div class="stat-label">👥 Total Tamu</div><div class="stat-value" id="reportGuests">0</div></div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-top:1rem">
-            <div class="card"><div class="card-header"><div class="card-title">🏆 Top Marketing</div></div><div class="top-list" id="reportTopMarketing"></div></div>
-            <div class="card"><div class="card-header"><div class="card-title">🏠 Top Unit</div></div><div class="top-list" id="reportTopUnits"></div></div>
-            <div class="card"><div class="card-header"><div class="card-title">⏱️ Durasi Populer</div></div><div class="top-list" id="reportTopDuration"></div></div>
-            <div class="card"><div class="card-header"><div class="card-title">💳 Metode Bayar</div></div><div class="payment-split" id="reportPaymentBreakdown"></div></div>
-        </div>
-    </div>
+<div class="card">
+<div class="card-header"><div class="card-title"><div class="card-title-icon primary">📈</div>Generate Laporan</div></div>
+<div class="form-grid">
+<div class="form-group"><label class="form-label">Dari Tanggal</label><input type="date" class="form-input" id="reportStart"></div>
+<div class="form-group"><label class="form-label">Sampai Tanggal</label><input type="date" class="form-input" id="reportEnd"></div>
+<div class="form-group"><label class="form-label">&nbsp;</label><div class="btn-group"><button class="btn btn-primary" onclick="generateReport()">📊 Generate</button><button class="btn btn-success" onclick="exportReport()">📥 Export</button></div></div>
+</div>
+</div>
+<div id="reportResults" style="display:none;margin-top:1.5rem">
+<div class="dashboard-grid">
+<div class="stat-card success"><div class="stat-label">📥 Total Pemasukan</div><div class="stat-value" id="reportIncome">Rp 0</div></div>
+<div class="stat-card danger"><div class="stat-label">📤 Total Pengeluaran</div><div class="stat-value" id="reportExpense">Rp 0</div></div>
+<div class="stat-card"><div class="stat-label">💰 Saldo Bersih</div><div class="stat-value" id="reportNet">Rp 0</div></div>
+<div class="stat-card cyan"><div class="stat-label">👥 Total Tamu</div><div class="stat-value" id="reportGuests">0</div></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-top:1rem">
+<div class="card"><div class="card-header"><div class="card-title">🏆 Top Marketing</div></div><div class="top-list" id="reportTopMarketing"></div></div>
+<div class="card"><div class="card-header"><div class="card-title">🏠 Top Unit</div></div><div class="top-list" id="reportTopUnits"></div></div>
+<div class="card"><div class="card-header"><div class="card-title">⏱️ Durasi Populer</div></div><div class="top-list" id="reportTopDuration"></div></div>
+<div class="card"><div class="card-header"><div class="card-title">💳 Metode Bayar</div></div><div class="payment-split" id="reportPaymentBreakdown"></div></div>
+</div>
+</div>
+</div>
 </div>
 
-</div>
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<!-- Firebase Realtime Database -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
 <script>
-// === CONFIG ===
-const UNITS = {
-    Studio: ['S-01','S-02','S-03','S-04','S-05','S-06','S-07','S-08','S-09','S-10','S-11','S-12','S-13','S-14','S-15','S-16'],
-    '1BR': ['1B-01','1B-02','1B-03','1B-04','1B-05','1B-06','1B-07','1B-08','1B-09'],
-    '2BR': ['2B-01','2B-02','2B-03','2B-04','2B-05','2B-06']
+// === FIREBASE CONFIG ===
+const firebaseConfig = {
+  apiKey: "AIzaSyA2lSXx1OJYMIm3YdVMX1h0fSp6EfNIH_s",
+  authDomain: "saldozeav2.firebaseapp.com",
+  databaseURL: "https://saldozeav2-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "saldozeav2",
+  storageBucket: "saldozeav2.firebasestorage.app",
+  messagingSenderId: "340325272493",
+  appId: "1:340325272493:web:2b579a41be1356f388ef24"
 };
-const ALL_UNITS = [];
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// === CONFIG ===
+// Membaca unit dari localStorage, jika belum ada gunakan default Gateway Pasteur
+let UNITS = JSON.parse(localStorage.getItem('unit_list')) || {
+    Studio: [
+        'DB1128', 'DA1025', 'DB1012', 'DB0917', 'DA0835', 'DB0511',
+        'DB0108', 'DB0106', 'JA1009A', 'JC1005', 'JA0111', 'RA0109',
+        'RA03A11', 'TB0318A', 'JC1005A', 'RA03A05'
+    ],
+    '1BR': [
+        'TA1123', 'TC1117', 'TB0301', 'TC0138', 'TC0107',
+        'TB1010', 'TB0306', 'TB0505', 'TB0316'
+    ],
+    '2BR': [
+        'TA1005', 'DA0120', 'DA03A21', 'RC0506', 'DB0907', 'DB0316'
+    ]
+};
+
+// Membuat ALL_UNITS berdasarkan UNITS yang terbaru
+let ALL_UNITS = [];
 Object.entries(UNITS).forEach(([t,nums])=>nums.forEach(n=>ALL_UNITS.push({number:n,type:t})));
 
 const DUR_HOURS = {'1J':1,'2J':2,'3J':3,'4J':4,'5J':5,'6J':6,'7J':7,'8J':8,'PM':12,'FD':24};
 const DUR_LABELS = {'1J':'1J Charge','2J':'2J Charge','3J':'3 Jam','4J':'4 Jam','5J':'5 Jam','6J':'6 Jam','7J':'7 Jam','8J':'8 Jam','PM':'Promo Malam','FD':'Fullday'};
-
+// --- HARGA GATEWAY PASTEUR ---
 const PRICES = {
-    Studio:{ weekday:{'1J':50e3,'2J':100e3,'3J':150e3,'4J':175e3,'5J':200e3,'6J':225e3,'7J':250e3,'8J':275e3,'PM':200e3,'FD':350e3}, weekend:{'1J':75e3,'2J':125e3,'3J':175e3,'4J':200e3,'5J':225e3,'6J':250e3,'7J':275e3,'8J':300e3,'PM':225e3,'FD':400e3} },
-    '1BR':{ weekday:{'1J':75e3,'2J':125e3,'3J':200e3,'4J':225e3,'5J':250e3,'6J':275e3,'7J':300e3,'8J':325e3,'PM':250e3,'FD':450e3}, weekend:{'1J':100e3,'2J':150e3,'3J':225e3,'4J':250e3,'5J':275e3,'6J':300e3,'7J':325e3,'8J':350e3,'PM':275e3,'FD':500e3} },
-    '2BR':{ weekday:{'1J':100e3,'2J':150e3,'3J':250e3,'4J':275e3,'5J':300e3,'6J':325e3,'7J':350e3,'8J':375e3,'PM':300e3,'FD':550e3}, weekend:{'1J':125e3,'2J':175e3,'3J':275e3,'4J':300e3,'5J':325e3,'6J':350e3,'7J':375e3,'8J':400e3,'PM':325e3,'FD':600e3} }
+  Studio: {
+    weekday: {'3J':90000,'4J':115000,'5J':140000,'6J':165000,'7J':190000,'8J':215000,'PM':190000,'FD':240000},
+    weekend: {'3J':120000,'4J':160000,'5J':200000,'6J':240000,'7J':280000,'8J':320000,'PM':400000}
+  },
+  '1BR': {
+    weekday: {'3J':110000,'4J':145000,'5J':180000,'6J':215000,'7J':250000,'8J':285000,'PM':240000,'FD':290000},
+    weekend: {'3J':150000,'4J':200000,'5J':250000,'6J':300000,'7J':350000,'8J':400000,'PM':470000}
+  },
+  '2BR': {
+    weekday: {'3J':140000,'4J':180000,'5J':220000,'6J':260000,'7J':300000,'8J':340000,'PM':340000,'FD':390000},
+    weekend: {'3J':180000,'4J':240000,'5J':300000,'6J':360000,'7J':420000,'8J':480000,'PM':580000}
+  }
 };
+// --- END HARGA GATEWAY PASTEUR ---
 
 let records = [];
+
+// === FIREBASE SYNC FUNCTIONS ===
+let isSyncingFromFirebase = false; // Flag untuk mencegah infinite loop saat sync
+
+function syncRecordsFromFirebase(snapshot) {
+    if (isSyncingFromFirebase) return; // Skip jika perubahan datang dari Firebase sendiri
+    isSyncingFromFirebase = true;
+
+    const firebaseRecords = snapshot.val();
+    if (firebaseRecords) {
+        records = Object.values(firebaseRecords);
+        saveRecordsToLocalStorage(); // Simpan ke localStorage sebagai fallback
+        console.log("Records loaded from Firebase.");
+        updateUIAfterDataChange(); // Refresh UI setelah data berubah
+    } else {
+        records = [];
+        saveRecordsToLocalStorage();
+        updateUIAfterDataChange();
+    }
+    isSyncingFromFirebase = false;
+}
+
+function syncRecordsToFirebase() {
+    if (isSyncingFromFirebase) return; // Skip jika perubahan datang dari localStorage
+    isSyncingFromFirebase = true;
+
+    // Convert array to object map for Firebase
+    const recordsMap = {};
+    records.forEach(record => {
+        recordsMap[record.id] = record;
+    });
+
+    db.ref('records').set(recordsMap)
+        .then(() => {
+            console.log("Records saved to Firebase successfully.");
+            // Jangan set isSyncingFromFirebase = false di sini, karena Firebase akan memicu listener
+        })
+        .catch(error => {
+            console.error("Error saving records to Firebase: ", error);
+            isSyncingFromFirebase = false; // Reset flag jika error
+            showToast("Gagal simpan ke Firebase.", "error");
+        });
+}
+
+function syncUnitsFromFirebase(snapshot) {
+    if (isSyncingFromFirebase) return;
+    isSyncingFromFirebase = true;
+
+    const firebaseUnits = snapshot.val();
+    if (firebaseUnits) {
+        UNITS = firebaseUnits;
+        saveUnitListToLocalStorage(); // Simpan ke localStorage sebagai fallback
+        rebuildAllUnitsList(); // Perbarui ALL_UNITS
+        console.log("Units loaded from Firebase.");
+        updateUIAfterDataChange(); // Refresh UI setelah data berubah
+    }
+    isSyncingFromFirebase = false;
+}
+
+function syncUnitsToFirebase() {
+    if (isSyncingFromFirebase) return;
+    isSyncingFromFirebase = true;
+
+    db.ref('units').set(UNITS)
+        .then(() => {
+            console.log("Units saved to Firebase successfully.");
+            // Jangan set isSyncingFromFirebase = false di sini, karena Firebase akan memicu listener
+        })
+        .catch(error => {
+            console.error("Error saving units to Firebase: ", error);
+            isSyncingFromFirebase = false; // Reset flag jika error
+            showToast("Gagal simpan unit ke Firebase.", "error");
+        });
+}
+
+// === LOCAL STORAGE FALLBACK FUNCTIONS ===
+function saveRecordsToLocalStorage() {
+    try {
+        localStorage.setItem('rental_records', JSON.stringify(records));
+    } catch (e) {
+        console.error("Failed to save records to localStorage: ", e);
+    }
+}
+
+function loadRecordsFromLocalStorage() {
+    try {
+        const stored = localStorage.getItem('rental_records');
+        if (stored) {
+            records = JSON.parse(stored);
+        } else {
+            records = [];
+        }
+    } catch (e) {
+        console.error("Failed to load records from localStorage: ", e);
+        records = [];
+    }
+}
+
+function saveUnitListToLocalStorage() {
+    try {
+        localStorage.setItem('unit_list', JSON.stringify(UNITS));
+    } catch (e) {
+        console.error("Failed to save units to localStorage: ", e);
+    }
+}
+
+function loadUnitListFromLocalStorage() {
+    try {
+        const stored = localStorage.getItem('unit_list');
+        if (stored) {
+            UNITS = JSON.parse(stored);
+        } else {
+            // Jika tidak ada di localStorage, gunakan default Gateway Pasteur
+            UNITS = {
+                Studio: [
+                    'DB1128', 'DA1025', 'DB1012', 'DB0917', 'DA0835', 'DB0511',
+                    'DB0108', 'DB0106', 'JA1009A', 'JC1005', 'JA0111', 'RA0109',
+                    'RA03A11', 'TB0318A', 'JC1005A', 'RA03A05'
+                ],
+                '1BR': [
+                    'TA1123', 'TC1117', 'TB0301', 'TC0138', 'TC0107',
+                    'TB1010', 'TB0306', 'TB0505', 'TB0316'
+                ],
+                '2BR': [
+                    'TA1005', 'DA0120', 'DA03A21', 'RC0506', 'DB0907', 'DB0316'
+                ]
+            };
+        }
+    } catch (e) {
+        console.error("Failed to load units from localStorage: ", e);
+        // Gunakan default jika gagal
+         UNITS = {
+                Studio: [
+                    'DB1128', 'DA1025', 'DB1012', 'DB0917', 'DA0835', 'DB0511',
+                    'DB0108', 'DB0106', 'JA1009A', 'JC1005', 'JA0111', 'RA0109',
+                    'RA03A11', 'TB0318A', 'JC1005A', 'RA03A05'
+                ],
+                '1BR': [
+                    'TA1123', 'TC1117', 'TB0301', 'TC0138', 'TC0107',
+                    'TB1010', 'TB0306', 'TB0505', 'TB0316'
+                ],
+                '2BR': [
+                    'TA1005', 'DA0120', 'DA03A21', 'RC0506', 'DB0907', 'DB0316'
+                ]
+            };
+    }
+}
+
+function rebuildAllUnitsList() {
+    ALL_UNITS = [];
+    Object.entries(UNITS).forEach(([t, nums]) => nums.forEach(n => ALL_UNITS.push({ number: n, type: t })));
+}
+
+// === MANAJEMEN UNIT FUNGSI ===
+function saveUnitList() {
+    rebuildAllUnitsList();
+    saveUnitListToLocalStorage();
+    syncUnitsToFirebase(); // Trigger sync ke Firebase
+    showToast("Daftar unit diperbarui!", "info");
+}
+
+function addUnit(number, type) {
+    if (!number || !type) {
+        showToast("Nomor atau tipe unit tidak boleh kosong!", "error");
+        return false;
+    }
+    if (!UNITS[type]) {
+        showToast("Tipe unit tidak valid!", "error");
+        return false;
+    }
+    if (UNITS[type].includes(number)) {
+        showToast(`Unit ${number} sudah ada di tipe ${type}!`, "error");
+        return false;
+    }
+    UNITS[type].push(number);
+    saveUnitList();
+    return true;
+}
+
+function removeUnit(number) {
+    let found = false;
+    for (const type in UNITS) {
+        const index = UNITS[type].indexOf(number);
+        if (index > -1) {
+            // Cek apakah unit sedang aktif disewa
+            const rental = getActiveRental(number);
+            if (rental) {
+                showToast(`Unit ${number} sedang disewa! Tidak bisa dihapus.`, "error");
+                return false;
+            }
+            UNITS[type].splice(index, 1);
+            found = true;
+            break; // Hanya hapus dari satu tipe
+        }
+    }
+    if (!found) {
+        showToast(`Unit ${number} tidak ditemukan!`, "error");
+        return false;
+    }
+    saveUnitList();
+    return true;
+}
+
+function handleAddUnit() {
+    const num = document.getElementById('newUnitNumber').value.trim();
+    const type = document.getElementById('newUnitType').value;
+    if (addUnit(num, type)) {
+        document.getElementById('newUnitNumber').value = '';
+        document.getElementById('newUnitType').value = '';
+        // renderUnitGrid(); // Akan di-refresh oleh listener Firebase
+    }
+}
+
+function handleRemoveUnit() {
+    const num = document.getElementById('removeUnitNumber').value.trim();
+    if (removeUnit(num)) {
+        document.getElementById('removeUnitNumber').value = '';
+        // renderUnitGrid(); // Akan di-refresh oleh listener Firebase
+    }
+}
 
 // === UTILS ===
 const fmt = n => 'Rp ' + (n||0).toLocaleString('id-ID');
@@ -467,202 +715,203 @@ const todayStr = () => new Date().toISOString().split('T')[0];
 const nowTime = () => new Date().toTimeString().slice(0,5);
 const monthStr = () => todayStr().slice(0,7);
 const timeMin = t => { if(!t) return 0; const[h,m]=t.split(':').map(Number); return h*60+m; };
-
 function addHours(t, hrs) {
-    const[h,m]=t.split(':').map(Number);
-    const tot=h*60+m+hrs*60;
-    return `${String(Math.floor(tot/60)%24).padStart(2,'0')}:${String(tot%60).padStart(2,'0')}`;
+const[h,m]=t.split(':').map(Number);
+const tot=h*60+m+hrs*60;
+return `${String(Math.floor(tot/60)%24).padStart(2,'0')}:${String(tot%60).padStart(2,'0')}`;
 }
-
 function showToast(msg, type='info') {
-    const c=document.getElementById('toastContainer');
-    const t=document.createElement('div');
-    t.className=`toast ${type}`;
-    const icons={success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
-    t.innerHTML=`<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
-    t.onclick=()=>t.remove();
-    c.appendChild(t);
-    setTimeout(()=>{if(t.parentNode)t.remove()},4000);
+const c=document.getElementById('toastContainer');
+const t=document.createElement('div');
+t.className=`toast ${type}`;
+const icons={success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
+t.innerHTML=`<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+t.onclick=()=>t.remove();
+c.appendChild(t);
+setTimeout(()=>{if(t.parentNode)t.remove()},4000);
 }
 
-function saveRecords() { try{localStorage.setItem('rental_records',JSON.stringify(records))}catch(e){} }
-function loadRecords() { try{records=JSON.parse(localStorage.getItem('rental_records'))||[]}catch(e){records=[]} }
-
-function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+// === UPDATE UI AFTER DATA CHANGE ===
+function updateUIAfterDataChange() {
+    // Refresh data yang dipengaruhi oleh records/unit changes
+    updateDashboard();
+    if (document.getElementById('units').classList.contains('active')) {
+        renderUnitGrid();
+    }
+    if (document.getElementById('transaction').classList.contains('active')) {
+        renderRecentTransactions();
+    }
+    if (document.getElementById('history').classList.contains('active')) {
+        applyFilters();
+    }
+    // Update dropdown unit numbers di form rental jika tab aktif
+    if (document.getElementById('rental').classList.contains('active')) {
+        populateUnitNumbers();
+    }
+}
 
 // === NAV ===
 function switchTab(id) {
-    document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-    const tab=document.getElementById(id); if(tab) tab.classList.add('active');
-    const btn=document.querySelector(`.nav-btn[data-tab="${id}"]`); if(btn) btn.classList.add('active');
-    if(id==='dashboard') updateDashboard();
-    if(id==='units') renderUnitGrid();
-    if(id==='history') applyFilters();
-    if(id==='transaction') renderRecentTransactions();
+document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+const tab=document.getElementById(id); if(tab) tab.classList.add('active');
+const btn=document.querySelector(`.nav-btn[data-tab="${id}"]`); if(btn) btn.classList.add('active');
+if(id==='dashboard') updateDashboard();
+if(id==='units') renderUnitGrid();
+if(id==='history') applyFilters();
+if(id==='transaction') renderRecentTransactions();
 }
 
 // === CLOCK ===
 function updateClock() {
-    const now=new Date();
-    const days=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
-    const months=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-    document.getElementById('headerDate').textContent=`${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
-    document.getElementById('headerClock').textContent=now.toTimeString().slice(0,8);
+const now=new Date();
+const days=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+const months=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+document.getElementById('headerDate').textContent=`${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+document.getElementById('headerClock').textContent=now.toTimeString().slice(0,8);
 }
 
 // === UNIT STATUS ===
 function getActiveRental(unitNum) {
-    const today=todayStr(), nowM=timeMin(nowTime());
-    return records.find(r=>{
-        if(r.type!=='rental'||r.date!==today||r.unitNumber!==unitNum||r.status==='cancelled') return false;
-        let ci=timeMin(r.checkIn), co=timeMin(r.checkOut);
-        if(co<=ci) co+=1440;
-        let n=nowM; if(n<ci&&co>1440) n+=1440;
-        return n>=ci&&n<co;
-    });
+const today=todayStr(), nowM=timeMin(nowTime());
+return records.find(r=>{
+if(r.type!=='rental'||r.date!==today||r.unitNumber!==unitNum||r.status==='cancelled') return false;
+let ci=timeMin(r.checkIn), co=timeMin(r.checkOut);
+if(co<=ci) co+=1440;
+let n=nowM; if(n<ci&&co>1440) n+=1440;
+return n>=ci&&n<co;
+});
 }
-
 function getUnitStatus(unitNum) {
-    const rental=getActiveRental(unitNum);
-    if(!rental) return {status:'available',rental:null,remaining:0};
-    const nowM=timeMin(nowTime());
-    let ci=timeMin(rental.checkIn), co=timeMin(rental.checkOut);
-    if(co<=ci) co+=1440;
-    let n=nowM; if(n<ci&&co>1440) n+=1440;
-    const rem=co-n;
-    return {status:rem<=30?'checkout-soon':'occupied',rental,remaining:rem};
+const rental=getActiveRental(unitNum);
+if(!rental) return {status:'available',rental:null,remaining:0};
+const nowM=timeMin(nowTime());
+let ci=timeMin(rental.checkIn), co=timeMin(rental.checkOut);
+if(co<=ci) co+=1440;
+let n=nowM; if(n<ci&&co>1440) n+=1440;
+const rem=co-n;
+return {status:rem<=30?'checkout-soon':'occupied',rental,remaining:rem};
 }
 
 // === UNIT GRID ===
 function renderUnitGrid() {
-    const search=(document.getElementById('searchUnit')?.value||'').toLowerCase();
-    const fType=document.getElementById('filterUnitType')?.value||'';
-    const fStatus=document.getElementById('filterUnitStatus')?.value||'';
-    let avail=0,occ=0,coSoon=0;
-    const sections={};
-
-    ALL_UNITS.forEach(u=>{
-        if(fType&&u.type!==fType) return;
-        if(search&&!u.number.toLowerCase().includes(search)) return;
-        const{status,rental,remaining}=getUnitStatus(u.number);
-        if(fStatus&&status!==fStatus) return;
-        if(status==='available') avail++; else if(status==='checkout-soon') coSoon++; else occ++;
-        if(!sections[u.type]) sections[u.type]=[];
-        sections[u.type].push({...u,status,rental,remaining});
-    });
-
-    document.getElementById('availableCount').textContent=avail;
-    document.getElementById('occupiedCount').textContent=occ;
-    document.getElementById('checkoutSoonCountStat').textContent=coSoon;
-    document.getElementById('headerAvailable').textContent=avail;
-    const badge=document.getElementById('checkoutBadge');
-    badge.style.display=coSoon>0?'':'none'; badge.textContent=coSoon;
-
-    let html='';
-    const labels={Studio:'🏢 Studio','1BR':'🛏️ 1 Bedroom','2BR':'🏠 2 Bedroom'};
-    ['Studio','1BR','2BR'].forEach(type=>{
-        const units=sections[type]; if(!units||!units.length) return;
-        html+=`<div class="unit-section"><div class="unit-section-title">${labels[type]} <span class="count">${units.length}</span></div><div class="unit-grid">`;
-        units.forEach(u=>{
-            const sLabel=u.status==='available'?'✅ Tersedia':u.status==='checkout-soon'?`⚠️ CO ${u.remaining}m`:'🔴 Terisi';
-            let info='';
-            if(u.rental) info=`<div class="unit-info"><div class="unit-guest">👤 ${u.rental.guestIdentity||u.rental.marketing||'-'}</div><div class="unit-timer">⏱️ ${u.rental.checkIn}-${u.rental.checkOut}</div></div>`;
-            html+=`<div class="unit-card ${u.status}" onclick="onUnitClick('${u.number}')"><div class="unit-header"><div class="unit-number">${u.number}</div><div class="unit-type-badge">${u.type}</div></div><div class="unit-status">${sLabel}</div>${info}</div>`;
-        });
-        html+=`</div></div>`;
-    });
-    if(!html) html='<div class="empty-state"><div class="empty-state-icon">🏢</div><div class="empty-state-text">Tidak ada unit ditemukan</div></div>';
-    document.getElementById('unitGridContainer').innerHTML=html;
+const search=(document.getElementById('searchUnit')?.value||'').toLowerCase();
+const fType=document.getElementById('filterUnitType')?.value||'';
+const fStatus=document.getElementById('filterUnitStatus')?.value||'';
+let avail=0,occ=0,coSoon=0;
+const sections={};
+ALL_UNITS.forEach(u=>{
+if(fType&&u.type!==fType) return;
+if(search&&!u.number.toLowerCase().includes(search)) return;
+const{status,rental,remaining}=getUnitStatus(u.number);
+if(fStatus&&status!==fStatus) return;
+if(status==='available') avail++; else if(status==='checkout-soon') coSoon++; else occ++;
+if(!sections[u.type]) sections[u.type]=[];
+sections[u.type].push({...u,status,rental,remaining});
+});
+document.getElementById('availableCount').textContent=avail;
+document.getElementById('occupiedCount').textContent=occ;
+document.getElementById('checkoutSoonCountStat').textContent=coSoon;
+document.getElementById('headerAvailable').textContent=avail;
+const badge=document.getElementById('checkoutBadge');
+badge.style.display=coSoon>0?'':'none'; badge.textContent=coSoon;
+let html='';
+const labels={Studio:'🏢 Studio','1BR':'🛏️ 1 Bedroom','2BR':'🏠 2 Bedroom'};
+['Studio','1BR','2BR'].forEach(type=>{
+const units=sections[type]; if(!units||!units.length) return;
+html+=`<div class="unit-section"><div class="unit-section-title">${labels[type]} <span class="count">${units.length}</span></div><div class="unit-grid">`;
+units.forEach(u=>{
+const sLabel=u.status==='available'?'✅ Tersedia':u.status==='checkout-soon'?`⚠️ CO ${u.remaining}m`:'🔴 Terisi';
+let info='';
+if(u.rental) info=`<div class="unit-info"><div class="unit-guest">👤 ${u.rental.guestIdentity||u.rental.marketing||'-'}</div><div class="unit-timer">⏱️ ${u.rental.checkIn}-${u.rental.checkOut}</div></div>`;
+html+=`<div class="unit-card ${u.status}" onclick="onUnitClick('${u.number}')"><div class="unit-header"><div class="unit-number">${u.number}</div><div class="unit-type-badge">${u.type}</div></div><div class="unit-status">${sLabel}</div>${info}</div>`;
+});
+html+=`</div></div>`;
+});
+if(!html) html='<div class="empty-state"><div class="empty-state-icon">🏢</div><div class="empty-state-text">Tidak ada unit ditemukan</div></div>';
+document.getElementById('unitGridContainer').innerHTML=html;
 }
-
 function onUnitClick(num) {
-    const{status,rental}=getUnitStatus(num);
-    const unit=ALL_UNITS.find(u=>u.number===num);
-    if(status==='available') {
-        switchTab('rental');
-        document.getElementById('unitType').value=unit.type;
-        populateUnitNumbers();
-        document.getElementById('unitNumber').value=num;
-        showToast(`Unit ${num} dipilih`,'info');
-        return;
-    }
-    document.getElementById('modalTitle').textContent=`🏠 Unit ${num}`;
-    document.getElementById('modalBody').innerHTML=`
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
-            <div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">STATUS</div><div style="font-weight:700;color:${status==='checkout-soon'?'var(--accent-warning)':'var(--accent-danger)'}">${status==='checkout-soon'?'⚠️ Segera CO':'🔴 Terisi'}</div></div>
-            <div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">MARKETING</div><div style="font-weight:700">${rental.marketing}</div></div>
-            <div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">CHECK-IN</div><div style="font-weight:700">${rental.checkIn}</div></div>
-            <div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">CHECK-OUT</div><div style="font-weight:700">${rental.checkOut}</div></div>
-            <div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">DURASI</div><div style="font-weight:700">${DUR_LABELS[rental.duration]||rental.duration}</div></div>
-            <div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">TOTAL</div><div style="font-weight:700;color:var(--accent-1)">${fmt(rental.totalPayment)}</div></div>
-            <div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md);grid-column:1/-1"><div style="font-size:0.7rem;color:var(--text-muted)">TAMU</div><div style="font-weight:700">${rental.guestIdentity||'-'}</div></div>
-        </div>`;
-    document.getElementById('modalFooter').innerHTML=`<button class="btn btn-warning btn-sm" onclick="forceCheckout('${rental.id}')">⏏️ Force CO</button><button class="btn btn-secondary btn-sm" onclick="closeModal()">Tutup</button>`;
-    document.getElementById('modalOverlay').classList.add('active');
+const{status,rental}=getUnitStatus(num);
+const unit=ALL_UNITS.find(u=>u.number===num);
+if(status==='available') {
+switchTab('rental');
+document.getElementById('unitType').value=unit.type;
+populateUnitNumbers();
+document.getElementById('unitNumber').value=num;
+showToast(`Unit ${num} dipilih`,'info');
+return;
 }
-
+document.getElementById('modalTitle').textContent=`🏠 Unit ${num}`;
+document.getElementById('modalBody').innerHTML=`
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
+<div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">STATUS</div><div style="font-weight:700;color:${status==='checkout-soon'?'var(--accent-warning)':'var(--accent-danger)'}">${status==='checkout-soon'?'⚠️ Segera CO':'🔴 Terisi'}</div></div>
+<div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">MARKETING</div><div style="font-weight:700">${rental.marketing}</div></div>
+<div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">CHECK-IN</div><div style="font-weight:700">${rental.checkIn}</div></div>
+<div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">CHECK-OUT</div><div style="font-weight:700">${rental.checkOut}</div></div>
+<div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">DURASI</div><div style="font-weight:700">${DUR_LABELS[rental.duration]||rental.duration}</div></div>
+<div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">TOTAL</div><div style="font-weight:700;color:var(--accent-1)">${fmt(rental.totalPayment)}</div></div>
+<div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md);grid-column:1/-1"><div style="font-size:0.7rem;color:var(--text-muted)">TAMU</div><div style="font-weight:700">${rental.guestIdentity||'-'}</div></div>
+</div>`;
+document.getElementById('modalFooter').innerHTML=`<button class="btn btn-warning btn-sm" onclick="forceCheckout('${rental.id}')">⏏️ Force CO</button><button class="btn btn-secondary btn-sm" onclick="closeModal()">Tutup</button>`;
+document.getElementById('modalOverlay').classList.add('active');
+}
 function forceCheckout(id) {
-    const r=records.find(x=>x.id===id);
-    if(r){ r.checkOut=nowTime(); r.notes=(r.notes||'')+' [Force CO]'; saveRecords(); closeModal(); renderUnitGrid(); updateDashboard(); showToast('Unit di-checkout','success'); }
+const r=records.find(x=>x.id===id);
+if(r){ r.checkOut=nowTime(); r.notes=(r.notes||'')+' [Force CO]'; saveRecords(); closeModal(); renderUnitGrid(); updateDashboard(); showToast('Unit di-checkout','success'); }
 }
 
 // === RENTAL FORM ===
 function populateUnitNumbers() {
-    const type=document.getElementById('unitType').value;
-    const sel=document.getElementById('unitNumber');
-    sel.innerHTML='<option value="">Pilih Unit</option>';
-    if(!type||!UNITS[type]) return;
-    UNITS[type].forEach(num=>{
-        const{status}=getUnitStatus(num);
-        const icon=status==='available'?'✅':status==='checkout-soon'?'⚠️':'🔴';
-        const opt=document.createElement('option');
-        opt.value=num; opt.textContent=`${icon} ${num}`;
-        sel.appendChild(opt);
-    });
+const type=document.getElementById('unitType').value;
+const sel=document.getElementById('unitNumber');
+sel.innerHTML='<option value="">Pilih Unit</option>';
+if(!type||!UNITS[type]) return;
+UNITS[type].forEach(num=>{
+const{status}=getUnitStatus(num);
+const icon=status==='available'?'✅':status==='checkout-soon'?'⚠️':'🔴';
+const opt=document.createElement('option');
+opt.value=num; opt.textContent=`${icon} ${num}`;
+sel.appendChild(opt);
+});
 }
-
 function calcCheckout() {
-    const ci=document.getElementById('checkIn').value, dur=document.getElementById('duration').value;
-    if(ci&&dur&&DUR_HOURS[dur]) document.getElementById('checkOut').value=addHours(ci,DUR_HOURS[dur]);
+const ci=document.getElementById('checkIn').value, dur=document.getElementById('duration').value;
+if(ci&&dur&&DUR_HOURS[dur]) document.getElementById('checkOut').value=addHours(ci,DUR_HOURS[dur]);
 }
-
 function calcBasePrice() {
-    const type=document.getElementById('unitType').value, dur=document.getElementById('duration').value, pt=document.getElementById('priceType').value;
-    if(type&&dur&&pt!=='custom'&&PRICES[type]&&PRICES[type][pt]) document.getElementById('basePrice').value=PRICES[type][pt][dur]||0;
+const type=document.getElementById('unitType').value, dur=document.getElementById('duration').value, pt=document.getElementById('priceType').value;
+if(type&&dur&&pt!=='custom'&&PRICES[type]&&PRICES[type][pt]) document.getElementById('basePrice').value=PRICES[type][pt][dur]||0;
 }
-
 function updateTotal() {
-    const c=parseInt(document.getElementById('cashAmount').value)||0;
-    const t=parseInt(document.getElementById('transferAmount').value)||0;
-    const q=parseInt(document.getElementById('qrAmount').value)||0;
-    document.getElementById('totalPayment').textContent=fmt(c+t+q);
+const c=parseInt(document.getElementById('cashAmount').value)||0;
+const t=parseInt(document.getElementById('transferAmount').value)||0;
+const q=parseInt(document.getElementById('qrAmount').value)||0;
+document.getElementById('totalPayment').textContent=fmt(c+t+q);
 }
-
 function resetRentalForm() {
-    document.getElementById('rentalForm').reset();
-    document.getElementById('unitNumber').innerHTML='<option value="">Pilih Unit</option>';
-    document.getElementById('checkOut').value='';
-    document.getElementById('totalPayment').textContent='Rp 0';
-    document.getElementById('durationHint').textContent='';
-    document.getElementById('otherMarketingGroup').style.display='none';
-    ['cashAmount','transferAmount','qrAmount','marketingFee'].forEach(id=>document.getElementById(id).value='0');
-    autoSetPriceType(); autoSetCheckIn();
+document.getElementById('rentalForm').reset();
+document.getElementById('unitNumber').innerHTML='<option value="">Pilih Unit</option>';
+document.getElementById('checkOut').value='';
+document.getElementById('totalPayment').textContent='Rp 0';
+document.getElementById('durationHint').textContent='';
+document.getElementById('otherMarketingGroup').style.display='none';
+['cashAmount','transferAmount','qrAmount','marketingFee'].forEach(id=>document.getElementById(id).value='0');
+autoSetPriceType(); autoSetCheckIn();
 }
-
 function autoSetPriceType() {
-    const d=new Date().getDay();
-    document.getElementById('priceType').value=(d===0||d===6)?'weekend':'weekday';
+const d=new Date().getDay();
+document.getElementById('priceType').value=(d===0||d===6)?'weekend':'weekday';
 }
 function autoSetCheckIn() { document.getElementById('checkIn').value=nowTime(); }
 
 // === FORM EVENTS ===
 document.getElementById('unitType').addEventListener('change', ()=>{ populateUnitNumbers(); calcBasePrice(); });
 document.getElementById('duration').addEventListener('change', ()=>{
-    calcCheckout(); calcBasePrice();
-    const d=document.getElementById('duration').value;
-    const hints={'1J':'⚡ Charge telat CO/early CI','2J':'⚡ Charge telat CO/early CI','PM':'🌙 Promo malam 21:00-09:00','FD':'📅 Full 24 jam'};
-    document.getElementById('durationHint').textContent=hints[d]||`🕐 Durasi ${DUR_HOURS[d]||0} jam`;
+calcCheckout(); calcBasePrice();
+const d=document.getElementById('duration').value;
+const hints={'1J':'⚡ Charge telat CO/early CI','2J':'⚡ Charge telat CO/early CI','PM':'🌙 Promo malam 21:00-09:00','FD':'📅 Full 24 jam'};
+document.getElementById('durationHint').textContent=hints[d]||`🕐 Durasi ${DUR_HOURS[d]||0} jam`;
 });
 document.getElementById('checkIn').addEventListener('change', calcCheckout);
 document.getElementById('priceType').addEventListener('change', calcBasePrice);
@@ -670,366 +919,372 @@ document.getElementById('marketing').addEventListener('change', function(){ docu
 ['cashAmount','transferAmount','qrAmount'].forEach(id=>document.getElementById(id).addEventListener('input',updateTotal));
 
 document.getElementById('rentalForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    let marketing=document.getElementById('marketing').value;
-    if(marketing==='other'){
-        marketing=document.getElementById('otherMarketing').value.trim();
-        if(!marketing){showToast('Isi nama marketing!','error');return;}
-    }
-    const data={
-        id:genId(), type:'rental', timestamp:Date.now(), date:todayStr(), time:nowTime(),
-        unitType:document.getElementById('unitType').value,
-        unitNumber:document.getElementById('unitNumber').value,
-        marketing,
-        duration:document.getElementById('duration').value,
-        checkIn:document.getElementById('checkIn').value,
-        checkOut:document.getElementById('checkOut').value,
-        priceType:document.getElementById('priceType').value,
-        basePrice:parseInt(document.getElementById('basePrice').value)||0,
-        cashAmount:parseInt(document.getElementById('cashAmount').value)||0,
-        transferAmount:parseInt(document.getElementById('transferAmount').value)||0,
-        qrAmount:parseInt(document.getElementById('qrAmount').value)||0,
-        bankAccount:document.getElementById('bankAccount').value,
-        marketingFee:parseInt(document.getElementById('marketingFee').value)||0,
-        paymentStatus:document.getElementById('paymentStatus').value,
-        guestIdentity:document.getElementById('guestIdentity').value,
-        notes:document.getElementById('rentalNotes').value,
-        status:'active'
-    };
-    data.totalPayment=data.cashAmount+data.transferAmount+data.qrAmount;
-    data.feeStatus=data.marketingFee>0?'unpaid':'paid';
-
-    if(!data.unitType||!data.unitNumber||!data.duration||!data.checkIn){showToast('Lengkapi field wajib!','error');return;}
-
-    const{status}=getUnitStatus(data.unitNumber);
-    if(status!=='available'&&!confirm(`Unit ${data.unitNumber} sedang terisi. Lanjutkan?`)) return;
-
-    records.push(data); saveRecords();
-    showToast(`Sewa ${data.unitNumber} berhasil!`,'success');
-    resetRentalForm(); updateDashboard();
+e.preventDefault();
+let marketing=document.getElementById('marketing').value;
+if(marketing==='other'){
+marketing=document.getElementById('otherMarketing').value.trim();
+if(!marketing){showToast('Isi nama marketing!','error');return;}
+}
+const data={
+id:genId(), type:'rental', timestamp:Date.now(), date:todayStr(), time:nowTime(),
+unitType:document.getElementById('unitType').value,
+unitNumber:document.getElementById('unitNumber').value,
+marketing,
+duration:document.getElementById('duration').value,
+checkIn:document.getElementById('checkIn').value,
+checkOut:document.getElementById('checkOut').value,
+priceType:document.getElementById('priceType').value,
+basePrice:parseInt(document.getElementById('basePrice').value)||0,
+cashAmount:parseInt(document.getElementById('cashAmount').value)||0,
+transferAmount:parseInt(document.getElementById('transferAmount').value)||0,
+qrAmount:parseInt(document.getElementById('qrAmount').value)||0,
+bankAccount:document.getElementById('bankAccount').value,
+marketingFee:parseInt(document.getElementById('marketingFee').value)||0,
+paymentStatus:document.getElementById('paymentStatus').value,
+guestIdentity:document.getElementById('guestIdentity').value,
+notes:document.getElementById('rentalNotes').value,
+status:'active'
+};
+data.totalPayment=data.cashAmount+data.transferAmount+data.qrAmount;
+data.feeStatus=data.marketingFee>0?'unpaid':'paid';
+if(!data.unitType||!data.unitNumber||!data.duration||!data.checkIn){showToast('Lengkapi field wajib!','error');return;}
+const{status}=getUnitStatus(data.unitNumber);
+if(status!=='available'&&!confirm(`Unit ${data.unitNumber} sedang terisi. Lanjutkan?`)) return;
+records.push(data);
+// saveRecords(); // Ganti dengan sync ke Firebase
+syncRecordsToFirebase();
+showToast(`Sewa ${data.unitNumber} berhasil!`,'success');
+resetRentalForm(); updateDashboard();
 });
 
 document.getElementById('incomeForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const amt=parseInt(document.getElementById('incomeAmount').value)||0;
-    if(!amt){showToast('Isi nominal!','error');return;}
-    records.push({
-        id:genId(),type:'income',timestamp:Date.now(),date:todayStr(),time:nowTime(),
-        source:document.getElementById('incomeSource').value.trim(),
-        amount:amt,
-        method:document.getElementById('incomeMethod').value,
-        notes:document.getElementById('incomeNotes').value.trim()
-    });
-    saveRecords(); showToast(`Pemasukan ${fmt(amt)} ditambah!`,'success');
-    this.reset(); renderRecentTransactions(); updateDashboard();
+e.preventDefault();
+const amt=parseInt(document.getElementById('incomeAmount').value)||0;
+if(!amt){showToast('Isi nominal!','error');return;}
+records.push({
+id:genId(),type:'income',timestamp:Date.now(),date:todayStr(),time:nowTime(),
+source:document.getElementById('incomeSource').value.trim(),
+amount:amt,
+method:document.getElementById('incomeMethod').value,
+notes:document.getElementById('incomeNotes').value.trim()
+});
+// saveRecords(); // Ganti dengan sync ke Firebase
+syncRecordsToFirebase();
+showToast(`Pemasukan ${fmt(amt)} ditambah!`,'success');
+this.reset(); renderRecentTransactions(); updateDashboard();
 });
 
 document.getElementById('expenseForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const amt=parseInt(document.getElementById('expenseAmount').value)||0;
-    const cat=document.getElementById('expenseCategory').value;
-    const recip=document.getElementById('expenseRecipient').value.trim();
-    if(!cat||!recip||!amt){showToast('Lengkapi semua field!','error');return;}
-    if(cat==='Fee Marketing'){
-        records.filter(r=>r.type==='rental'&&r.feeStatus==='unpaid'&&r.marketing===recip).forEach(r=>r.feeStatus='paid');
-    }
-    records.push({
-        id:genId(),type:'expense',timestamp:Date.now(),date:todayStr(),time:nowTime(),
-        category:cat,recipient:recip,amount:amt,
-        method:document.getElementById('expenseMethod').value,
-        notes:document.getElementById('expenseNotes').value.trim()
-    });
-    saveRecords(); showToast(`Pengeluaran ${fmt(amt)} dicatat!`,'success');
-    this.reset(); renderRecentTransactions(); updateDashboard();
+e.preventDefault();
+const amt=parseInt(document.getElementById('expenseAmount').value)||0;
+const cat=document.getElementById('expenseCategory').value;
+const recip=document.getElementById('expenseRecipient').value.trim();
+if(!cat||!recip||!amt){showToast('Lengkapi semua field!','error');return;}
+if(cat==='Fee Marketing'){
+records.filter(r=>r.type==='rental'&&r.feeStatus==='unpaid'&&r.marketing===recip).forEach(r=>r.feeStatus='paid');
+}
+records.push({
+id:genId(),type:'expense',timestamp:Date.now(),date:todayStr(),time:nowTime(),
+category:cat,recipient:recip,amount:amt,
+method:document.getElementById('expenseMethod').value,
+notes:document.getElementById('expenseNotes').value.trim()
+});
+// saveRecords(); // Ganti dengan sync ke Firebase
+syncRecordsToFirebase();
+showToast(`Pengeluaran ${fmt(amt)} dicatat!`,'success');
+this.reset(); renderRecentTransactions(); updateDashboard();
 });
 
 // === RECENT TRANSACTIONS ===
 function renderRecentTransactions() {
-    const today=todayStr();
-    const recs=records.filter(r=>r.date===today).sort((a,b)=>b.timestamp-a.timestamp).slice(0,20);
-    const tbody=document.getElementById('recentTransactions');
-    if(!recs.length){tbody.innerHTML='<tr><td colspan="5" class="table-empty">Belum ada transaksi</td></tr>';return;}
-    tbody.innerHTML=recs.map(r=>{
-        let jenis,ket,nominal,method;
-        if(r.type==='rental'){
-            jenis='<span class="badge badge-primary">🏠 Sewa</span>';
-            ket=`${r.unitNumber} - ${r.marketing} (${DUR_LABELS[r.duration]||r.duration})`;
-            nominal=`<span style="color:var(--accent-success)">+${fmt(r.totalPayment)}</span>`;
-            method=[r.cashAmount>0?'💵':'',r.transferAmount>0?'🏦':'',r.qrAmount>0?'📱':''].filter(Boolean).join(' ')||'💵';
-        } else if(r.type==='income'){
-            jenis='<span class="badge badge-success">📥 Masuk</span>';
-            ket=r.source; nominal=`<span style="color:var(--accent-success)">+${fmt(r.amount)}</span>`;
-            method={Cash:'💵',Transfer:'🏦',QR:'📱'}[r.method]||'💵';
-        } else {
-            jenis='<span class="badge badge-danger">📤 Keluar</span>';
-            ket=`${r.category}: ${r.recipient}`; nominal=`<span style="color:var(--accent-danger)">-${fmt(r.amount)}</span>`;
-            method={Cash:'💵',Transfer:'🏦',QR:'📱'}[r.method]||'💵';
-        }
-        return `<tr><td>${r.time}</td><td>${jenis}</td><td>${ket}</td><td>${method}</td><td>${nominal}</td></tr>`;
-    }).join('');
+const today=todayStr();
+const recs=records.filter(r=>r.date===today).sort((a,b)=>b.timestamp-a.timestamp).slice(0,20);
+const tbody=document.getElementById('recentTransactions');
+if(!recs.length){tbody.innerHTML='<tr><td colspan="5" class="table-empty">Belum ada transaksi</td></tr>';return;}
+tbody.innerHTML=recs.map(r=>{
+let jenis,ket,nominal,method;
+if(r.type==='rental'){
+jenis='<span class="badge badge-primary">🏠 Sewa</span>';
+ket=`${r.unitNumber} - ${r.marketing} (${DUR_LABELS[r.duration]||r.duration})`;
+nominal=`<span style="color:var(--accent-success)">+${fmt(r.totalPayment)}</span>`;
+method=[r.cashAmount>0?'💵':'',r.transferAmount>0?'🏦':'',r.qrAmount>0?'📱':''].filter(Boolean).join(' ')||'💵';
+} else if(r.type==='income'){
+jenis='<span class="badge badge-success">📥 Masuk</span>';
+ket=r.source; nominal=`<span style="color:var(--accent-success)">+${fmt(r.amount)}</span>`;
+method={Cash:'💵',Transfer:'🏦',QR:'📱'}[r.method]||'💵';
+} else {
+jenis='<span class="badge badge-danger">📤 Keluar</span>';
+ket=`${r.category}: ${r.recipient}`; nominal=`<span style="color:var(--accent-danger)">-${fmt(r.amount)}</span>`;
+method={Cash:'💵',Transfer:'🏦',QR:'📱'}[r.method]||'💵';
+}
+return `<tr><td>${r.time}</td><td>${jenis}</td><td>${ket}</td><td>${method}</td><td>${nominal}</td></tr>`;
+}).join('');
 }
 
 // === DASHBOARD ===
 function updateDashboard() {
-    const today=todayStr(), month=monthStr();
-    const todayRecs=records.filter(r=>r.date===today&&r.status!=='cancelled');
-    const monthRecs=records.filter(r=>r.date&&r.date.startsWith(month)&&r.status!=='cancelled');
-
-    let tCash=0,tTransfer=0,tQR=0,rentalInc=0,otherInc=0,totalExp=0,guests=0,unpaidFees=0;
-    const unitsUsed=new Set(), mktCounts={}, unitCounts={}, durCounts={}, expCats={}, feeMkt={};
-
-    todayRecs.forEach(r=>{
-        if(r.type==='rental'){
-            tCash+=r.cashAmount||0; tTransfer+=r.transferAmount||0; tQR+=r.qrAmount||0;
-            rentalInc+=r.totalPayment||0; guests++;
-            unitsUsed.add(r.unitNumber);
-            mktCounts[r.marketing]=(mktCounts[r.marketing]||0)+1;
-            unitCounts[r.unitNumber]=(unitCounts[r.unitNumber]||0)+1;
-            durCounts[r.duration]=(durCounts[r.duration]||0)+1;
-            if(r.feeStatus==='unpaid'&&r.marketingFee>0){ unpaidFees+=r.marketingFee; feeMkt[r.marketing]=(feeMkt[r.marketing]||0)+r.marketingFee; }
-        } else if(r.type==='income'){
-            const a=r.amount||0; otherInc+=a;
-            if(r.method==='Cash') tCash+=a; else if(r.method==='Transfer') tTransfer+=a; else tQR+=a;
-        } else if(r.type==='expense'){
-            const a=r.amount||0; totalExp+=a;
-            expCats[r.category]=(expCats[r.category]||0)+a;
-            if(r.method==='Cash') tCash-=a; else if(r.method==='Transfer') tTransfer-=a; else tQR-=a;
-        }
-    });
-
-    const totalIncome=rentalInc+otherInc;
-    const saldo=totalIncome-totalExp;
-
-    document.getElementById('todaySaldo').textContent=fmt(saldo);
-    document.getElementById('todayCash').textContent=fmtShort(tCash);
-    document.getElementById('todayTransfer').textContent=fmtShort(tTransfer);
-    document.getElementById('todayQR').textContent=fmtShort(tQR);
-    document.getElementById('todayIncome').textContent=fmt(totalIncome);
-    document.getElementById('todayRentalIncome').textContent=fmtShort(rentalInc);
-    document.getElementById('todayOtherIncome').textContent=fmtShort(otherInc);
-    document.getElementById('todayExpense').textContent=fmt(totalExp);
-    document.getElementById('todayGuests').textContent=guests;
-    document.getElementById('todayUnitsUsed').textContent=unitsUsed.size;
-    document.getElementById('unpaidFee').textContent=fmt(unpaidFees);
-    document.getElementById('headerSaldo').textContent=fmtShort(saldo);
-
-    // Top expense category
-    const topExpCat=Object.entries(expCats).sort((a,b)=>b[1]-a[1])[0];
-    document.getElementById('topExpenseCategory').textContent=topExpCat?`${topExpCat[0]}: ${fmtShort(topExpCat[1])}`:'-';
-
-    // Fee breakdown
-    const feeList=Object.entries(feeMkt).map(([k,v])=>`${k}: ${fmtShort(v)}`).join(', ');
-    document.getElementById('feeBreakdown').textContent=feeList||'-';
-
-    // Month
-    let monthInc=0,monthExp=0,monthGuests=0;
-    monthRecs.forEach(r=>{
-        if(r.type==='rental'){monthInc+=r.totalPayment||0;monthGuests++;}
-        else if(r.type==='income') monthInc+=r.amount||0;
-        else if(r.type==='expense') monthExp+=r.amount||0;
-    });
-    document.getElementById('monthSaldo').textContent=fmt(monthInc-monthExp);
-    document.getElementById('monthGuests').textContent=monthGuests;
-
-    // Top lists
-    renderTopList('topMarketing',mktCounts,'👤');
-    renderTopList('topUnits',unitCounts,'🏠');
-    renderTopList('topDurations',durCounts,'⏱️',true);
-
-    // Checkout alert
-    const coSoonUnits=[];
-    ALL_UNITS.forEach(u=>{const{status,rental,remaining}=getUnitStatus(u.number);if(status==='checkout-soon')coSoonUnits.push({...u,rental,remaining});});
-    const alertEl=document.getElementById('checkoutAlert');
-    if(coSoonUnits.length){
-        alertEl.style.display='flex';
-        document.getElementById('checkoutAlertList').textContent=coSoonUnits.map(u=>`${u.number} (${u.remaining}m)`).join(', ');
-    } else alertEl.style.display='none';
+const today=todayStr(), month=monthStr();
+const todayRecs=records.filter(r=>r.date===today&&r.status!=='cancelled');
+const monthRecs=records.filter(r=>r.date&&r.date.startsWith(month)&&r.status!=='cancelled');
+let tCash=0,tTransfer=0,tQR=0,rentalInc=0,otherInc=0,totalExp=0,guests=0,unpaidFees=0;
+const unitsUsed=new Set(), mktCounts={}, unitCounts={}, durCounts={}, expCats={}, feeMkt={};
+todayRecs.forEach(r=>{
+if(r.type==='rental'){
+tCash+=r.cashAmount||0; tTransfer+=r.transferAmount||0; tQR+=r.qrAmount||0;
+rentalInc+=r.totalPayment||0; guests++;
+unitsUsed.add(r.unitNumber);
+mktCounts[r.marketing]=(mktCounts[r.marketing]||0)+1;
+unitCounts[r.unitNumber]=(unitCounts[r.unitNumber]||0)+1;
+durCounts[r.duration]=(durCounts[r.duration]||0)+1;
+if(r.feeStatus==='unpaid'&&r.marketingFee>0){ unpaidFees+=r.marketingFee; feeMkt[r.marketing]=(feeMkt[r.marketing]||0)+r.marketingFee; }
+} else if(r.type==='income'){
+const a=r.amount||0; otherInc+=a;
+if(r.method==='Cash') tCash+=a; else if(r.method==='Transfer') tTransfer+=a; else tQR+=a;
+} else if(r.type==='expense'){
+const a=r.amount||0; totalExp+=a;
+expCats[r.category]=(expCats[r.category]||0)+a;
+if(r.method==='Cash') tCash-=a; else if(r.method==='Transfer') tTransfer-=a; else tQR-=a;
 }
-
+});
+const totalIncome=rentalInc+otherInc;
+const saldo=totalIncome-totalExp;
+document.getElementById('todaySaldo').textContent=fmt(saldo);
+document.getElementById('todayCash').textContent=fmtShort(tCash);
+document.getElementById('todayTransfer').textContent=fmtShort(tTransfer);
+document.getElementById('todayQR').textContent=fmtShort(tQR);
+document.getElementById('todayIncome').textContent=fmt(totalIncome);
+document.getElementById('todayRentalIncome').textContent=fmtShort(rentalInc);
+document.getElementById('todayOtherIncome').textContent=fmtShort(otherInc);
+document.getElementById('todayExpense').textContent=fmt(totalExp);
+document.getElementById('todayGuests').textContent=guests;
+document.getElementById('todayUnitsUsed').textContent=unitsUsed.size;
+document.getElementById('unpaidFee').textContent=fmt(unpaidFees);
+document.getElementById('headerSaldo').textContent=fmtShort(saldo);
+// Top expense category
+const topExpCat=Object.entries(expCats).sort((a,b)=>b[1]-a[1])[0];
+document.getElementById('topExpenseCategory').textContent=topExpCat?`${topExpCat[0]}: ${fmtShort(topExpCat[1])}`:'-';
+// Fee breakdown
+const feeList=Object.entries(feeMkt).map(([k,v])=>`${k}: ${fmtShort(v)}`).join(', ');
+document.getElementById('feeBreakdown').textContent=feeList||'-';
+// Month
+let monthInc=0,monthExp=0,monthGuests=0;
+monthRecs.forEach(r=>{
+if(r.type==='rental'){monthInc+=r.totalPayment||0;monthGuests++;}
+else if(r.type==='income') monthInc+=r.amount||0;
+else if(r.type==='expense') monthExp+=r.amount||0;
+});
+document.getElementById('monthSaldo').textContent=fmt(monthInc-monthExp);
+document.getElementById('monthGuests').textContent=monthGuests;
+// Top lists
+renderTopList('topMarketing',mktCounts,'👤');
+renderTopList('topUnits',unitCounts,'🏠');
+renderTopList('topDurations',durCounts,'⏱️',true);
+// Checkout alert
+const coSoonUnits=[];
+ALL_UNITS.forEach(u=>{const{status,rental,remaining}=getUnitStatus(u.number);if(status==='checkout-soon')coSoonUnits.push({...u,rental,remaining});});
+const alertEl=document.getElementById('checkoutAlert');
+if(coSoonUnits.length){
+alertEl.style.display='flex';
+document.getElementById('checkoutAlertList').textContent=coSoonUnits.map(u=>`${u.number} (${u.remaining}m)`).join(', ');
+} else alertEl.style.display='none';
+}
 function renderTopList(elId,counts,icon,isDuration) {
-    const el=document.getElementById(elId);
-    const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    if(!sorted.length){el.innerHTML='<div class="empty-state"><div class="empty-state-text">Belum ada data</div></div>';return;}
-    const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
-    el.innerHTML=sorted.map(([name,val],i)=>`<div class="top-list-item"><span class="rank">${medals[i]||''}</span><span class="name">${isDuration?(DUR_LABELS[name]||name):name}</span><span class="value">${val}x</span></div>`).join('');
+const el=document.getElementById(elId);
+const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+if(!sorted.length){el.innerHTML='<div class="empty-state"><div class="empty-state-text">Belum ada data</div></div>';return;}
+const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
+el.innerHTML=sorted.map(([name,val],i)=>`<div class="top-list-item"><span class="rank">${medals[i]||''}</span><span class="name">${isDuration?(DUR_LABELS[name]||name):name}</span><span class="value">${val}x</span></div>`).join('');
 }
 
 // === HISTORY ===
 function applyFilters() {
-    const filterDate=document.getElementById('filterDate').value;
-    const filterType=document.getElementById('filterType').value;
-    const filterMkt=document.getElementById('filterMarketing').value;
-
-    let filtered=records.filter(r=>r.status!=='cancelled');
-    if(filterDate) filtered=filtered.filter(r=>r.date===filterDate);
-    if(filterType) filtered=filtered.filter(r=>r.type===filterType);
-    if(filterMkt) filtered=filtered.filter(r=>r.marketing===filterMkt);
-    filtered.sort((a,b)=>b.timestamp-a.timestamp);
-
-    let totalIn=0,totalOut=0;
-    filtered.forEach(r=>{
-        if(r.type==='rental') totalIn+=r.totalPayment||0;
-        else if(r.type==='income') totalIn+=r.amount||0;
-        else if(r.type==='expense') totalOut+=r.amount||0;
-    });
-
-    document.getElementById('historyTotalIn').textContent=fmt(totalIn);
-    document.getElementById('historyTotalOut').textContent=fmt(totalOut);
-    document.getElementById('historyNet').textContent=fmt(totalIn-totalOut);
-    document.getElementById('historyCount').textContent=filtered.length;
-
-    const tbody=document.getElementById('historyTable');
-    if(!filtered.length){tbody.innerHTML='<tr><td colspan="10" class="table-empty">Tidak ada data</td></tr>';return;}
-
-    tbody.innerHTML=filtered.map((r,i)=>{
-        let jenis,unitSrc,mkt='-',dur='-',total,method,ket;
-        if(r.type==='rental'){
-            jenis='<span class="badge badge-primary">Sewa</span>';
-            unitSrc=r.unitNumber; mkt=r.marketing; dur=DUR_LABELS[r.duration]||r.duration;
-            total=`<span style="color:var(--accent-success)">+${fmt(r.totalPayment)}</span>`;
-            method=[r.cashAmount>0?'💵':'',r.transferAmount>0?'🏦':'',r.qrAmount>0?'📱':''].filter(Boolean).join('')||'-';
-            ket=[r.guestIdentity,r.notes].filter(Boolean).join(' | ')||'-';
-        } else if(r.type==='income'){
-            jenis='<span class="badge badge-success">Masuk</span>';
-            unitSrc=r.source; total=`<span style="color:var(--accent-success)">+${fmt(r.amount)}</span>`;
-            method={Cash:'💵',Transfer:'🏦',QR:'📱'}[r.method]||'-';
-            ket=r.notes||'-';
-        } else {
-            jenis='<span class="badge badge-danger">Keluar</span>';
-            unitSrc=`${r.category}: ${r.recipient}`; total=`<span style="color:var(--accent-danger)">-${fmt(r.amount)}</span>`;
-            method={Cash:'💵',Transfer:'🏦',QR:'📱'}[r.method]||'-';
-            ket=r.notes||'-';
-        }
-        return `<tr><td>${i+1}</td><td>${r.date}<br><small>${r.time}</small></td><td>${jenis}</td><td>${unitSrc}</td><td>${mkt}</td><td>${dur}</td><td>${total}</td><td>${method}</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis">${ket}</td><td><button class="btn btn-danger btn-sm" onclick="deleteRecord('${r.id}')" style="padding:0.3rem 0.5rem;font-size:0.7rem">🗑️</button></td></tr>`;
-    }).join('');
+const filterDate=document.getElementById('filterDate').value;
+const filterType=document.getElementById('filterType').value;
+const filterMkt=document.getElementById('filterMarketing').value;
+let filtered=records.filter(r=>r.status!=='cancelled');
+if(filterDate) filtered=filtered.filter(r=>r.date===filterDate);
+if(filterType) filtered=filtered.filter(r=>r.type===filterType);
+if(filterMkt) filtered=filtered.filter(r=>r.marketing===filterMkt);
+filtered.sort((a,b)=>b.timestamp-a.timestamp);
+let totalIn=0,totalOut=0;
+filtered.forEach(r=>{
+if(r.type==='rental') totalIn+=r.totalPayment||0;
+else if(r.type==='income') totalIn+=r.amount||0;
+else if(r.type==='expense') totalOut+=r.amount||0;
+});
+document.getElementById('historyTotalIn').textContent=fmt(totalIn);
+document.getElementById('historyTotalOut').textContent=fmt(totalOut);
+document.getElementById('historyNet').textContent=fmt(totalIn-totalOut);
+document.getElementById('historyCount').textContent=filtered.length;
+const tbody=document.getElementById('historyTable');
+if(!filtered.length){tbody.innerHTML='<tr><td colspan="10" class="table-empty">Tidak ada data</td></tr>';return;}
+tbody.innerHTML=filtered.map((r,i)=>{
+let jenis,unitSrc,mkt='-',dur='-',total,method,ket;
+if(r.type==='rental'){
+jenis='<span class="badge badge-primary">Sewa</span>';
+unitSrc=r.unitNumber; mkt=r.marketing; dur=DUR_LABELS[r.duration]||r.duration;
+total=`<span style="color:var(--accent-success)">+${fmt(r.totalPayment)}</span>`;
+method=[r.cashAmount>0?'💵':'',r.transferAmount>0?'🏦':'',r.qrAmount>0?'📱':''].filter(Boolean).join('')||'-';
+ket=[r.guestIdentity,r.notes].filter(Boolean).join(' | ')||'-';
+} else if(r.type==='income'){
+jenis='<span class="badge badge-success">Masuk</span>';
+unitSrc=r.source; total=`<span style="color:var(--accent-success)">+${fmt(r.amount)}</span>`;
+method={Cash:'💵',Transfer:'🏦',QR:'📱'}[r.method]||'-';
+ket=r.notes||'-';
+} else {
+jenis='<span class="badge badge-danger">Keluar</span>';
+unitSrc=`${r.category}: ${r.recipient}`; total=`<span style="color:var(--accent-danger)">-${fmt(r.amount)}</span>`;
+method={Cash:'💵',Transfer:'🏦',QR:'📱'}[r.method]||'-';
+ket=r.notes||'-';
 }
-
+return `<tr><td>${i+1}</td><td>${r.date}<br><small>${r.time}</small></td><td>${jenis}</td><td>${unitSrc}</td><td>${mkt}</td><td>${dur}</td><td>${total}</td><td>${method}</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis">${ket}</td><td><button class="btn btn-danger btn-sm" onclick="deleteRecord('${r.id}')" style="padding:0.3rem 0.5rem;font-size:0.7rem">🗑️</button></td></tr>`;
+}).join('');
+}
 function clearFilters() {
-    document.getElementById('filterDate').value='';
-    document.getElementById('filterType').value='';
-    document.getElementById('filterMarketing').value='';
-    applyFilters();
+document.getElementById('filterDate').value='';
+document.getElementById('filterType').value='';
+document.getElementById('filterMarketing').value='';
+applyFilters();
 }
-
 function deleteRecord(id) {
-    if(!confirm('Hapus record ini?')) return;
-    records=records.filter(r=>r.id!==id);
-    saveRecords(); applyFilters(); updateDashboard();
-    showToast('Record dihapus','warning');
+if(!confirm('Hapus record ini?')) return;
+records=records.filter(r=>r.id!==id);
+// saveRecords(); // Ganti dengan sync ke Firebase
+syncRecordsToFirebase();
+applyFilters(); updateDashboard();
+showToast('Record dihapus','warning');
 }
 
 // === EXPORT ===
 function exportCSV() {
-    const rows=[['Tanggal','Waktu','Jenis','Unit/Sumber','Marketing','Durasi','Total','Metode','Keterangan']];
-    const filtered=records.filter(r=>r.status!=='cancelled').sort((a,b)=>b.timestamp-a.timestamp);
-    filtered.forEach(r=>{
-        if(r.type==='rental') rows.push([r.date,r.time,'Sewa',r.unitNumber,r.marketing,DUR_LABELS[r.duration]||r.duration,r.totalPayment,'C:'+r.cashAmount+'/T:'+r.transferAmount+'/Q:'+r.qrAmount,r.notes||'']);
-        else if(r.type==='income') rows.push([r.date,r.time,'Pemasukan',r.source,'-','-',r.amount,r.method,r.notes||'']);
-        else rows.push([r.date,r.time,'Pengeluaran',r.category+': '+r.recipient,'-','-',r.amount,r.method,r.notes||'']);
-    });
-    downloadCSV(rows,'riwayat_'+todayStr()+'.csv');
+const rows=[['Tanggal','Waktu','Jenis','Unit/Sumber','Marketing','Durasi','Total','Metode','Keterangan']];
+const filtered=records.filter(r=>r.status!=='cancelled').sort((a,b)=>b.timestamp-a.timestamp);
+filtered.forEach(r=>{
+if(r.type==='rental') rows.push([r.date,r.time,'Sewa',r.unitNumber,r.marketing,DUR_LABELS[r.duration]||r.duration,r.totalPayment,'C:'+r.cashAmount+'/T:'+r.transferAmount+'/Q:'+r.qrAmount,r.notes||'']);
+else if(r.type==='income') rows.push([r.date,r.time,'Pemasukan',r.source,'-','-',r.amount,r.method,r.notes||'']);
+else rows.push([r.date,r.time,'Pengeluaran',r.category+': '+r.recipient,'-','-',r.amount,r.method,r.notes||'']);
+});
+downloadCSV(rows,'riwayat_'+todayStr()+'.csv');
 }
-
 function exportDailyReport() {
-    const today=todayStr();
-    const recs=records.filter(r=>r.date===today&&r.status!=='cancelled').sort((a,b)=>a.timestamp-b.timestamp);
-    const rows=[['Waktu','Jenis','Detail','Nominal','Metode']];
-    recs.forEach(r=>{
-        if(r.type==='rental') rows.push([r.time,'Sewa',`${r.unitNumber} ${r.marketing} ${DUR_LABELS[r.duration]||r.duration}`,r.totalPayment,'C:'+r.cashAmount+'/T:'+r.transferAmount+'/Q:'+r.qrAmount]);
-        else if(r.type==='income') rows.push([r.time,'Pemasukan',r.source,r.amount,r.method]);
-        else rows.push([r.time,'Pengeluaran',r.category+': '+r.recipient,r.amount,r.method]);
-    });
-    downloadCSV(rows,'laporan_harian_'+today+'.csv');
-    showToast('Export harian berhasil!','success');
+const today=todayStr();
+const recs=records.filter(r=>r.date===today&&r.status!=='cancelled').sort((a,b)=>a.timestamp-b.timestamp);
+const rows=[['Waktu','Jenis','Detail','Nominal','Metode']];
+recs.forEach(r=>{
+if(r.type==='rental') rows.push([r.time,'Sewa',`${r.unitNumber} ${r.marketing} ${DUR_LABELS[r.duration]||r.duration}`,r.totalPayment,'C:'+r.cashAmount+'/T:'+r.transferAmount+'/Q:'+r.qrAmount]);
+else if(r.type==='income') rows.push([r.time,'Pemasukan',r.source,r.amount,r.method]);
+else rows.push([r.time,'Pengeluaran',r.category+': '+r.recipient,r.amount,r.method]);
+});
+downloadCSV(rows,'laporan_harian_'+today+'.csv');
+showToast('Export harian berhasil!','success');
 }
-
 function downloadCSV(rows, filename) {
-    const csv=rows.map(r=>r.map(c=>'"'+(c+'').replace(/"/g,'""')+'"').join(',')).join('\n');
-    const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob); a.download=filename; a.click();
+const csv=rows.map(r=>r.map(c=>'"'+(c+'').replace(/"/g,'""')+'"').join(',')).join('
+');
+const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+const a=document.createElement('a');
+a.href=URL.createObjectURL(blob); a.download=filename; a.click();
 }
 
 // === REPORT ===
 function generateReport() {
-    const start=document.getElementById('reportStart').value;
-    const end=document.getElementById('reportEnd').value;
-    if(!start||!end){showToast('Pilih tanggal!','error');return;}
-    const recs=records.filter(r=>r.date>=start&&r.date<=end&&r.status!=='cancelled');
-    let inc=0,exp=0,guests=0,cash=0,transfer=0,qr=0;
-    const mktC={},unitC={},durC={};
-
-    recs.forEach(r=>{
-        if(r.type==='rental'){
-            inc+=r.totalPayment||0; guests++;
-            cash+=r.cashAmount||0; transfer+=r.transferAmount||0; qr+=r.qrAmount||0;
-            mktC[r.marketing]=(mktC[r.marketing]||0)+1;
-            unitC[r.unitNumber]=(unitC[r.unitNumber]||0)+1;
-            durC[r.duration]=(durC[r.duration]||0)+1;
-        } else if(r.type==='income'){
-            inc+=r.amount||0;
-            if(r.method==='Cash') cash+=r.amount; else if(r.method==='Transfer') transfer+=r.amount; else qr+=r.amount;
-        } else {
-            exp+=r.amount||0;
-        }
-    });
-
-    document.getElementById('reportResults').style.display='block';
-    document.getElementById('reportIncome').textContent=fmt(inc);
-    document.getElementById('reportExpense').textContent=fmt(exp);
-    document.getElementById('reportNet').textContent=fmt(inc-exp);
-    document.getElementById('reportGuests').textContent=guests;
-
-    renderTopList('reportTopMarketing',mktC,'👤');
-    renderTopList('reportTopUnits',unitC,'🏠');
-    renderTopList('reportTopDuration',durC,'⏱️',true);
-
-    document.getElementById('reportPaymentBreakdown').innerHTML=`
-        <div class="payment-split-item cash"><div class="icon">💵</div><div class="amount">${fmtShort(cash)}</div><div class="label">Cash</div></div>
-        <div class="payment-split-item transfer"><div class="icon">🏦</div><div class="amount">${fmtShort(transfer)}</div><div class="label">Transfer</div></div>
-        <div class="payment-split-item qr"><div class="icon">📱</div><div class="amount">${fmtShort(qr)}</div><div class="label">QRIS</div></div>`;
-    showToast('Laporan berhasil di-generate!','success');
+const start=document.getElementById('reportStart').value;
+const end=document.getElementById('reportEnd').value;
+if(!start||!end){showToast('Pilih tanggal!','error');return;}
+const recs=records.filter(r=>r.date>=start&&r.date<=end&&r.status!=='cancelled');
+let inc=0,exp=0,guests=0,cash=0,transfer=0,qr=0;
+const mktC={},unitC={},durC={};
+recs.forEach(r=>{
+if(r.type==='rental'){
+inc+=r.totalPayment||0; guests++;
+cash+=r.cashAmount||0; transfer+=r.transferAmount||0; qr+=r.qrAmount||0;
+mktC[r.marketing]=(mktC[r.marketing]||0)+1;
+unitC[r.unitNumber]=(unitC[r.unitNumber]||0)+1;
+durC[r.duration]=(durC[r.duration]||0)+1;
+} else if(r.type==='income'){
+inc+=r.amount||0;
+if(r.method==='Cash') cash+=r.amount; else if(r.method==='Transfer') transfer+=r.amount; else qr+=r.amount;
+} else {
+exp+=r.amount||0;
 }
-
+});
+document.getElementById('reportResults').style.display='block';
+document.getElementById('reportIncome').textContent=fmt(inc);
+document.getElementById('reportExpense').textContent=fmt(exp);
+document.getElementById('reportNet').textContent=fmt(inc-exp);
+document.getElementById('reportGuests').textContent=guests;
+renderTopList('reportTopMarketing',mktC,'👤');
+renderTopList('reportTopUnits',unitC,'🏠');
+renderTopList('reportTopDuration',durC,'⏱️',true);
+document.getElementById('reportPaymentBreakdown').innerHTML=`
+<div class="payment-split-item cash"><div class="icon">💵</div><div class="amount">${fmtShort(cash)}</div><div class="label">Cash</div></div>
+<div class="payment-split-item transfer"><div class="icon">🏦</div><div class="amount">${fmtShort(transfer)}</div><div class="label">Transfer</div></div>
+<div class="payment-split-item qr"><div class="icon">📱</div><div class="amount">${fmtShort(qr)}</div><div class="label">QRIS</div></div>`;
+showToast('Laporan berhasil di-generate!','success');
+}
 function exportReport() {
-    const start=document.getElementById('reportStart').value;
-    const end=document.getElementById('reportEnd').value;
-    if(!start||!end){showToast('Generate laporan dulu!','error');return;}
-    const recs=records.filter(r=>r.date>=start&&r.date<=end&&r.status!=='cancelled').sort((a,b)=>a.timestamp-b.timestamp);
-    const rows=[['Tanggal','Waktu','Jenis','Detail','Nominal','Metode']];
-    recs.forEach(r=>{
-        if(r.type==='rental') rows.push([r.date,r.time,'Sewa',`${r.unitNumber} ${r.marketing} ${DUR_LABELS[r.duration]||''}`,r.totalPayment,'C:'+r.cashAmount+'/T:'+r.transferAmount+'/Q:'+r.qrAmount]);
-        else if(r.type==='income') rows.push([r.date,r.time,'Pemasukan',r.source,r.amount,r.method]);
-        else rows.push([r.date,r.time,'Pengeluaran',r.category+': '+r.recipient,r.amount,r.method]);
-    });
-    downloadCSV(rows,`laporan_${start}_${end}.csv`);
-    showToast('Export laporan berhasil!','success');
+const start=document.getElementById('reportStart').value;
+const end=document.getElementById('reportEnd').value;
+if(!start||!end){showToast('Generate laporan dulu!','error');return;}
+const recs=records.filter(r=>r.date>=start&&r.date<=end&&r.status!=='cancelled').sort((a,b)=>a.timestamp-b.timestamp);
+const rows=[['Tanggal','Waktu','Jenis','Detail','Nominal','Metode']];
+recs.forEach(r=>{
+if(r.type==='rental') rows.push([r.date,r.time,'Sewa',`${r.unitNumber} ${r.marketing} ${DUR_LABELS[r.duration]||''}`,r.totalPayment,'C:'+r.cashAmount+'/T:'+r.transferAmount+'/Q:'+r.qrAmount]);
+else if(r.type==='income') rows.push([r.date,r.time,'Pemasukan',r.source,r.amount,r.method]);
+else rows.push([r.date,r.time,'Pengeluaran',r.category+': '+r.recipient,r.amount,r.method]);
+});
+downloadCSV(rows,`laporan_${start}_${end}.csv`);
+showToast('Export laporan berhasil!','success');
 }
 
 // === INIT ===
 function init() {
-    loadRecords();
-    updateClock(); setInterval(updateClock, 1000);
-    setInterval(()=>{ renderUnitGrid(); updateDashboard(); }, 60000); // refresh tiap menit
+    // Load data dari localStorage sebagai fallback pertama
+    loadRecordsFromLocalStorage();
+    loadUnitListFromLocalStorage();
+    rebuildAllUnitsList(); // Bangun ALL_UNITS dari UNITS yang dimuat
 
-    window.addEventListener('online', ()=>{ document.getElementById('connectionStatus').className='connection-status online'; document.getElementById('connectionStatus').innerHTML='🟢 Online'; });
-    window.addEventListener('offline', ()=>{ document.getElementById('connectionStatus').className='connection-status offline'; document.getElementById('connectionStatus').innerHTML='🔴 Offline'; });
+    // Setup listeners Firebase
+    db.ref('records').on('value', syncRecordsFromFirebase);
+    db.ref('units').on('value', syncUnitsFromFirebase);
+
+    // Update UI awal
+    updateClock();
+    setInterval(updateClock, 1000);
+    setInterval(updateUIAfterDataChange, 60000); // Refresh UI tiap menit
+
+    // Update status koneksi
+    window.addEventListener('online', ()=>{
+        document.getElementById('connectionStatus').className='connection-status online';
+        document.getElementById('connectionStatus').innerHTML='🟢 Online';
+        // Coba sinkronisasi ulang saat kembali online?
+    });
+    window.addEventListener('offline', ()=>{
+        document.getElementById('connectionStatus').className='connection-status offline';
+        document.getElementById('connectionStatus').innerHTML='🔴 Offline';
+    });
 
     autoSetPriceType();
     autoSetCheckIn();
 
-    // Default filter date & report dates
     document.getElementById('filterDate').value=todayStr();
     document.getElementById('reportStart').value=todayStr().slice(0,8)+'01';
     document.getElementById('reportEnd').value=todayStr();
 
-    updateDashboard();
-    renderUnitGrid();
-    renderRecentTransactions();
-    applyFilters();
+    // Panggil sekali untuk sinkronisasi awal dan update UI
+    setTimeout(() => {
+        document.getElementById('connectionStatus').className='connection-status online';
+        document.getElementById('connectionStatus').innerHTML='🟢 Online';
+        updateDashboard();
+        renderUnitGrid();
+        renderRecentTransactions();
+        applyFilters();
+    }, 3000); // Beri waktu 3 detik untuk koneksi Firebase sebelum menampilkan online
+
 }
 
 init();
 </script>
 </body>
 </html>
+
