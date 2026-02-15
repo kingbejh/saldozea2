@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="app-name" content="SaldoZea">
-<meta name="version" content="3.2">
+<meta name="version" content="3.3">
 <title>SaldoZea - Apartemen Rental Management System</title>
 <style>
 :root {
@@ -36,7 +37,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .connection-status { position: fixed; top: 80px; right: 20px; padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 600; z-index: 1000; display: flex; align-items: center; gap: 0.5rem; transition: var(--transition); }
 .connection-status.online { background: rgba(16,185,129,0.2); color: var(--accent-success); border: 1px solid var(--accent-success); }
 .connection-status.offline { background: rgba(239,68,68,0.2); color: var(--accent-danger); border: 1px solid var(--accent-danger); }
-.connection-status.connecting { background: rgba(245,158, 11, 0.2); color: var(--accent-warning); border: 1px solid var(--accent-warning); }
+.connection-status.connecting { background: rgba(245,158,11,0.2); color: var(--accent-warning); border: 1px solid var(--accent-warning); }
 .header { background: linear-gradient(135deg, rgba(99,102,241,0.95) 0%, rgba(139,92,246,0.95) 50%, rgba(168,85,247,0.95) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-lg), var(--shadow-glow); border-bottom: 1px solid rgba(255,255,255,0.1); }
 .header-content { max-width: 1600px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
 .logo { display: flex; align-items: center; gap: 0.75rem; }
@@ -231,212 +232,552 @@ body { background: white; color: black; }
 </style>
 </head>
 <body>
-<div class="connection-status connecting" id="connectionStatus">Menghubungkan...</div>
+<div class="connection-status connecting" id="connectionStatus">⏳ Menghubungkan...</div>
 <div class="toast-container" id="toastContainer"></div>
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
-<div class="modal">
-<div class="modal-header">
-<div class="modal-title" id="modalTitle">Detail</div>
-<button class="modal-close" onclick="closeModal()">×</button>
-</div>
-<div class="modal-body" id="modalBody"></div>
-<div class="modal-footer" id="modalFooter"></div>
-</div>
-</div>
-<div class="header">
-<div class="header-content">
-<div class="logo">
-<div class="logo-icon">SZ</div>
-<div class="logo-text">
-<div class="logo-title">SaldoZea Rental</div>
-<div class="logo-subtitle">APARTMENT SYSTEM</div>
-</div>
-</div>
-<div class="header-info">
-<div class="header-stat">
-<div class="header-stat-label">Unit Tersedia</div>
-<div class="header-stat-value" id="headerAvailable">0</div>
-</div>
-<div class="header-stat">
-<div class="header-stat-label">Saldo Hari Ini</div>
-<div class="header-stat-value" id="headerSaldo">Rp 0</div>
-</div>
-<div class="header-time">
-<div class="header-date" id="headerDate"></div>
-<div class="header-clock" id="headerClock"></div>
-</div>
-</div>
-</div>
-</div>
-<nav class="nav">
-<div class="nav-content">
-<button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
-<button class="nav-btn" data-tab="rental" onclick="switchTab('rental')">Input Sewa</button>
-<button class="nav-btn" data-tab="transaction" onclick="switchTab('transaction')">Transaksi</button>
-<button class="nav-btn" data-tab="units" onclick="switchTab('units')">Unit<span class="badge-count" id="checkoutBadge" style="display:none">0</span></button>
-<button class="nav-btn" data-tab="history" onclick="switchTab('history')">Riwayat</button>
-<button class="nav-btn" data-tab="report" onclick="switchTab('report')">Laporan</button>
-</div>
-</nav>
-<div class="main">
-<!-- DASHBOARD -->
-<div id="dashboard" class="tab-content active">
-<div class="checkout-alert" id="checkoutAlert" style="display:none">
-<div class="checkout-alert-icon">⚠️</div>
-<div class="checkout-alert-content">
-<div class="checkout-alert-title">Unit Segera Checkout!</div>
-<div class="checkout-alert-list" id="checkoutAlertList"></div>
-</div>
-<button class="btn btn-warning btn-sm" onclick="switchTab('units')">Lihat Unit</button>
-</div>
-<div class="quick-actions">
-<button class="quick-action-btn success" onclick="switchTab('rental')">+ Input Sewa Baru</button>
-<button class="quick-action-btn" onclick="switchTab('transaction')">+ Tambah Pemasukan</button>
-<button class="quick-action-btn danger" onclick="switchTab('transaction')">- Tambah Pengeluaran</button>
-<button class="quick-action-btn" onclick="exportDailyReport()">Export Hari Ini</button>
-</div>
-<div class="dashboard-grid">
-<div class="stat-card"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">Saldo Hari Ini</div><div class="stat-value" id="todaySaldo">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item cash">C: <span id="todayCash">0</span></div><div class="stat-breakdown-item transfer">T: <span id="todayTransfer">0</span></div><div class="stat-breakdown-item qr">Q: <span id="todayQR">0</span></div></div></div><div class="stat-icon">💰</div></div></div>
-<div class="stat-card success"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">Pemasukan Hari Ini</div><div class="stat-value" id="todayIncome">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item">Sewa: <span id="todayRentalIncome">0</span></div><div class="stat-breakdown-item">Lain: <span id="todayOtherIncome">0</span></div></div></div><div class="stat-icon">📈</div></div></div>
-<div class="stat-card danger"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">Pengeluaran Hari Ini</div><div class="stat-value" id="todayExpense">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item" id="topExpenseCategory">-</div></div></div><div class="stat-icon">📉</div></div></div>
-<div class="stat-card cyan"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">Tamu Hari Ini</div><div class="stat-value" id="todayGuests">0</div><div class="stat-breakdown"><div class="stat-breakdown-item"><span id="todayUnitsUsed">0</span> unit terpakai</div></div></div><div class="stat-icon">👥</div></div></div>
-<div class="stat-card warning"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">Fee Marketing Pending</div><div class="stat-value" id="unpaidFee">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item" id="feeBreakdown">-</div></div></div><div class="stat-icon">💸</div></div></div>
-<div class="stat-card"><div class="stat-card-inner"><div class="stat-content"><div class="stat-label">Saldo Bulan Ini</div><div class="stat-value" id="monthSaldo">Rp 0</div><div class="stat-breakdown"><div class="stat-breakdown-item"><span id="monthGuests">0</span> total tamu</div></div></div><div class="stat-icon">📅</div></div></div>
-</div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;">
-<div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon warning">🏆</div>Top Marketing Hari Ini</div></div><div class="top-list" id="topMarketing"><div class="empty-state"><div class="empty-state-text">Belum ada data</div></div></div></div>
-<div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon danger">🏢</div>Unit Terlaris Hari Ini</div></div><div class="top-list" id="topUnits"><div class="empty-state"><div class="empty-state-text">Belum ada data</div></div></div></div>
-<div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon cyan">⏱️</div>Durasi Populer Hari Ini</div></div><div class="top-list" id="topDurations"><div class="empty-state"><div class="empty-state-text">Belum ada data</div></div></div></div>
-</div>
-</div>
-<!-- RENTAL -->
-<div id="rental" class="tab-content">
-<div class="card">
-<div class="card-header"><div class="card-title"><div class="card-title-icon primary">📝</div>Input Data Penyewaan Unit</div><button class="btn btn-secondary btn-sm" onclick="resetRentalForm()">Reset</button></div>
-<form id="rentalForm" onsubmit="return handleRentalSubmit(event)">
-<div class="form-grid" style="margin-bottom:1.5rem">
-<div class="form-group"><label class="form-label">Tipe Unit <span class="required">*</span></label><select class="form-select" id="unitType" required onchange="populateUnitNumbers()"><option value="">Pilih Tipe</option><option value="Studio">Studio (16 unit)</option><option value="1BR">1 Bedroom (9 unit)</option><option value="2BR">2 Bedroom (6 unit)</option></select></div>
-<div class="form-group"><label class="form-label">Nomor Unit <span class="required">*</span></label><select class="form-select" id="unitNumber" required><option value="">Pilih Unit</option></select></div>
-<div class="form-group"><label class="form-label">Marketing <span class="required">*</span></label><select class="form-select" id="marketing" required><option value="">Pilih Marketing</option><option value="Raisya">Raisya</option><option value="Ibu">Ibu</option><option value="Security">Security</option><option value="Sani">Sani</option><option value="Ari">Ari</option><option value="Iwa">Iwa</option><option value="DS">DS (Datang Sendiri)</option><option value="other">Lainnya...</option></select></div>
-<div class="form-group" id="otherMarketingGroup" style="display:none"><label class="form-label">Nama Marketing</label><input type="text" class="form-input" id="otherMarketing" placeholder="Ketik nama..."></div>
-</div>
-<div class="form-grid" style="margin-bottom:1.5rem">
-<div class="form-group"><label class="form-label">Durasi <span class="required">*</span></label><select class="form-select" id="duration" required onchange="calcCheckout(); calcBasePrice(); updateDurationHint();"><option value="">Pilih Durasi</option><optgroup label="Charge"><option value="1J">1 Jam (Charge)</option><option value="2J">2 Jam (Charge)</option></optgroup><optgroup label="Regular"><option value="3J">3 Jam</option><option value="4J">4 Jam</option><option value="5J">5 Jam</option><option value="6J">6 Jam</option><option value="7J">7 Jam</option><option value="8J">8 Jam</option></optgroup><optgroup label="Special"><option value="PM">PM (Promo Malam)</option><option value="FD">Fullday (24 Jam)</option></optgroup></select><div class="form-hint" id="durationHint"></div></div>
-<div class="form-group"><label class="form-label">Check-in <span class="required">*</span></label><input type="time" class="form-input" id="checkIn" required onchange="calcCheckout()"></div>
-<div class="form-group"><label class="form-label">Check-out (Auto)</label><input type="time" class="form-input readonly" id="checkOut" readonly></div>
-<div class="form-group"><label class="form-label">Tipe Harga <span class="required">*</span></label><select class="form-select" id="priceType" required onchange="calcBasePrice()"><option value="weekday">Weekday</option><option value="weekend">Weekend</option><option value="custom">Custom</option></select></div>
-<div class="form-group"><label class="form-label">Harga Dasar</label><input type="number" class="form-input" id="basePrice" placeholder="0"><div class="form-hint">Harga standar referensi</div></div>
-</div>
-<div style="background:var(--bg-input);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem">
-<h3 style="margin-bottom:1rem;font-size:1rem">Pembayaran Diterima Kantor</h3>
-<div class="form-grid">
-<div class="form-group"><label class="form-label">Cash</label><input type="number" class="form-input" id="cashAmount" placeholder="0" value="0" oninput="updateTotal()"></div>
-<div class="form-group"><label class="form-label">Transfer</label><input type="number" class="form-input" id="transferAmount" placeholder="0" value="0" oninput="updateTotal()"></div>
-<div class="form-group"><label class="form-label">QRIS</label><input type="number" class="form-input" id="qrAmount" placeholder="0" value="0" oninput="updateTotal()"></div>
-</div>
-<div class="price-display" style="margin-top:1rem"><div class="label">Total Pembayaran Masuk Saldo</div><div class="value" id="totalPayment">Rp 0</div></div>
-</div>
-<div class="form-grid">
-<div class="form-group"><label class="form-label">Rekening Bank</label><select class="form-select" id="bankAccount"><option value="">- Pilih jika Transfer -</option><option>BCA</option><option>Mandiri</option><option>BRI</option><option>BNI</option><option>Dana</option><option>OVO</option><option>GoPay</option></select></div>
-<div class="form-group"><label class="form-label">Fee Marketing</label><input type="number" class="form-input" id="marketingFee" placeholder="0" value="0"><div class="form-hint">Isi 0 jika fee sudah dipotong</div></div>
-<div class="form-group"><label class="form-label">Status Bayar</label><select class="form-select" id="paymentStatus"><option value="Lunas">Lunas</option><option value="Belum Lunas">Belum Lunas</option></select></div>
-<div class="form-group"><label class="form-label">Identitas Tamu</label><input type="text" class="form-input" id="guestIdentity" placeholder="Nama / STNK / KTP"></div>
-<div class="form-group full-width"><label class="form-label">Keterangan</label><input type="text" class="form-input" id="rentalNotes" placeholder="Catatan tambahan..."></div>
-</div>
-<div class="btn-group" style="margin-top:1.5rem"><button type="submit" class="btn btn-primary btn-lg">Simpan Penyewaan</button><button type="button" class="btn btn-secondary" onclick="resetRentalForm()">Reset</button></div>
-</form>
-</div>
-</div>
-<!-- TRANSACTION -->
-<div id="transaction" class="tab-content">
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:1.5rem">
-<div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon success">➕</div>Tambah Pemasukan</div></div>
-<form id="incomeForm" onsubmit="return handleIncomeSubmit(event)"><div class="form-grid"><div class="form-group full-width"><label class="form-label">Sumber <span class="required">*</span></label><input type="text" class="form-input" id="incomeSource" placeholder="Contoh: Setoran Jarrdin, Bonus" required></div><div class="form-group"><label class="form-label">Nominal <span class="required">*</span></label><input type="number" class="form-input" id="incomeAmount" placeholder="0" required></div><div class="form-group"><label class="form-label">Metode <span class="required">*</span></label><select class="form-select" id="incomeMethod" required><option value="Cash">Cash</option><option value="Transfer">Transfer</option><option value="QR">QRIS</option></select></div><div class="form-group full-width"><label class="form-label">Keterangan</label><input type="text" class="form-input" id="incomeNotes" placeholder="Detail..."></div></div><button type="submit" class="btn btn-success" style="margin-top:1rem;width:100%">Tambah Pemasukan</button></form>
-</div>
-<div class="card"><div class="card-header"><div class="card-title"><div class="card-title-icon danger">➖</div>Tambah Pengeluaran</div></div>
-<form id="expenseForm" onsubmit="return handleExpenseSubmit(event)"><div class="form-grid"><div class="form-group"><label class="form-label">Kategori <span class="required">*</span></label><select class="form-select" id="expenseCategory" required><option value="">Pilih</option><option value="UM">UM</option><option value="Gaji">Gaji</option><option value="Kasbon">Kasbon</option><option value="Supplies">Supplies</option><option value="Maintenance">Maintenance</option><option value="Utilitas">Utilitas</option><option value="Abodemen">Abodemen</option><option value="Top Up Link">Top Up Link</option><option value="Setoran Kantor">Setoran Kantor</option><option value="Fee Marketing">Fee Marketing</option><option value="Lainnya">Lainnya</option></select></div><div class="form-group"><label class="form-label">Penerima <span class="required">*</span></label><input type="text" class="form-input" id="expenseRecipient" placeholder="Nama" required></div><div class="form-group"><label class="form-label">Nominal <span class="required">*</span></label><input type="number" class="form-input" id="expenseAmount" placeholder="0" required></div><div class="form-group"><label class="form-label">Metode <span class="required">*</span></label><select class="form-select" id="expenseMethod" required><option value="Cash">Cash</option><option value="Transfer">Transfer</option><option value="QR">QRIS</option></select></div><div class="form-group full-width"><label class="form-label">Keterangan</label><input type="text" class="form-input" id="expenseNotes" placeholder="Detail..."></div></div><button type="submit" class="btn btn-danger" style="margin-top:1rem;width:100%">Tambah Pengeluaran</button></form>
-</div>
-</div>
-<div class="card" style="margin-top:1.5rem"><div class="card-header"><div class="card-title"><div class="card-title-icon primary">📋</div>Transaksi Terbaru</div></div><div class="table-container" style="max-height:400px;overflow-y:auto"><table><thead><tr><th>Waktu</th><th>Jenis</th><th>Keterangan</th><th>Metode</th><th>Nominal</th></tr></thead><tbody id="recentTransactions"></tbody></table></div></div>
-</div>
-<!-- UNITS -->
-<div id="units" class="tab-content">
-<div class="card">
-<div class="card-header"><div class="card-title"><div class="card-title-icon cyan">⚙️</div>Manajemen Unit</div></div>
-<div class="form-grid" style="padding: 1rem;">
-<div class="form-group">
-<label class="form-label">Tambah Unit Baru</label>
-<input type="text" class="form-input" id="newUnitNumber" placeholder="Contoh: TA1123">
-<select class="form-select" id="newUnitType" style="margin-top:0.5rem;"><option value="">Pilih Tipe</option><option value="Studio">Studio</option><option value="1BR">1BR</option><option value="2BR">2BR</option></select>
-<button class="btn btn-success btn-sm" onclick="handleAddUnit()" style="margin-top:0.5rem;">Tambah</button>
-</div>
-<div class="form-group">
-<label class="form-label">Hapus Unit</label>
-<input type="text" class="form-input" id="removeUnitNumber" placeholder="Ketik nomor unit">
-<button class="btn btn-danger btn-sm" onclick="handleRemoveUnit()" style="margin-top:0.5rem;">Hapus</button>
-</div>
-</div>
-<div class="form-hint" style="padding: 0 1rem 1rem;">Gunakan dengan hati-hati. Unit yang sedang disewa tidak dapat dihapus.</div>
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Detail</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
 </div>
 
-<div class="filter-section">
-<div class="form-group" style="flex:2"><label class="form-label">Cari Unit</label><input type="text" class="form-input" id="searchUnit" placeholder="Ketik nomor unit..." oninput="renderUnitGrid()"></div>
-<div class="form-group"><label class="form-label">Tipe</label><select class="form-select" id="filterUnitType" onchange="renderUnitGrid()"><option value="">Semua</option><option value="Studio">Studio</option><option value="1BR">1BR</option><option value="2BR">2BR</option></select></div>
-<div class="form-group"><label class="form-label">Status</label><select class="form-select" id="filterUnitStatus" onchange="renderUnitGrid()"><option value="">Semua</option><option value="available">Tersedia</option><option value="occupied">Terisi</option><option value="checkout-soon">Segera CO</option></select></div>
+<div class="header">
+  <div class="header-content">
+    <div class="logo">
+      <div class="logo-icon">SZ</div>
+      <div class="logo-text">
+        <div class="logo-title">SaldoZea Rental</div>
+        <div class="logo-subtitle">APARTMENT SYSTEM v3.3</div>
+      </div>
+    </div>
+    <div class="header-info">
+      <div class="header-stat">
+        <div class="header-stat-label">Unit Tersedia</div>
+        <div class="header-stat-value" id="headerAvailable">0</div>
+      </div>
+      <div class="header-stat">
+        <div class="header-stat-label">Saldo Hari Ini</div>
+        <div class="header-stat-value" id="headerSaldo">Rp 0</div>
+      </div>
+      <div class="header-time">
+        <div class="header-date" id="headerDate"></div>
+        <div class="header-clock" id="headerClock"></div>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="dashboard-grid" style="margin-bottom:1.5rem">
-<div class="stat-card success"><div class="stat-label">Tersedia</div><div class="stat-value" id="availableCount">0</div></div>
-<div class="stat-card danger"><div class="stat-label">Terisi</div><div class="stat-value" id="occupiedCount">0</div></div>
-<div class="stat-card warning"><div class="stat-label">Segera CO</div><div class="stat-value" id="checkoutSoonCountStat">0</div></div>
-</div>
-<div id="unitGridContainer"></div>
-</div>
-<!-- HISTORY -->
-<div id="history" class="tab-content">
-<div class="filter-section">
-<div class="form-group"><label class="form-label">Tanggal</label><input type="date" class="form-input" id="filterDate"></div>
-<div class="form-group"><label class="form-label">Jenis</label><select class="form-select" id="filterType"><option value="">Semua</option><option value="rental">Sewa</option><option value="income">Pemasukan</option><option value="expense">Pengeluaran</option></select></div>
-<div class="form-group"><label class="form-label">Marketing</label><select class="form-select" id="filterMarketing"><option value="">Semua</option><option>Raisya</option><option>Ibu</option><option>Security</option><option>Sani</option><option>Ari</option><option>Iwa</option><option>DS</option></select></div>
-<div class="form-group"><label class="form-label">&nbsp;</label><div class="btn-group"><button class="btn btn-primary btn-sm" onclick="applyFilters()">Filter</button><button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear</button><button class="btn btn-success btn-sm" onclick="exportCSV()">Export</button></div></div>
-</div>
-<div class="dashboard-grid" style="margin-bottom:1rem">
-<div class="stat-card success" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Masuk</div><div class="stat-value" id="historyTotalIn" style="font-size:1.25rem">Rp 0</div></div>
-<div class="stat-card danger" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Keluar</div><div class="stat-value" id="historyTotalOut" style="font-size:1.25rem">Rp 0</div></div>
-<div class="stat-card" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Saldo</div><div class="stat-value" id="historyNet" style="font-size:1.25rem">Rp 0</div></div>
-<div class="stat-card cyan" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Record</div><div class="stat-value" id="historyCount" style="font-size:1.25rem">0</div></div>
-</div>
-<div class="table-container"><table><thead><tr><th>#</th><th>Waktu</th><th>Jenis</th><th>Unit/Sumber</th><th>Marketing</th><th>Durasi</th><th>Total</th><th>Metode</th><th>Ket</th><th>Aksi</th></tr></thead><tbody id="historyTable"></tbody></table></div>
-</div>
-<!-- REPORT -->
-<div id="report" class="tab-content">
-<div class="card">
-<div class="card-header"><div class="card-title"><div class="card-title-icon primary">📊</div>Generate Laporan</div></div>
-<div class="form-grid">
-<div class="form-group"><label class="form-label">Dari Tanggal</label><input type="date" class="form-input" id="reportStart"></div>
-<div class="form-group"><label class="form-label">Sampai Tanggal</label><input type="date" class="form-input" id="reportEnd"></div>
-<div class="form-group"><label class="form-label">&nbsp;</label><div class="btn-group"><button class="btn btn-primary" onclick="generateReport()">Generate</button><button class="btn btn-success" onclick="exportReport()">Export</button></div></div>
-</div>
-</div>
-<div id="reportResults" style="display:none;margin-top:1.5rem">
-<div class="dashboard-grid">
-<div class="stat-card success"><div class="stat-label">Total Pemasukan</div><div class="stat-value" id="reportIncome">Rp 0</div></div>
-<div class="stat-card danger"><div class="stat-label">Total Pengeluaran</div><div class="stat-value" id="reportExpense">Rp 0</div></div>
-<div class="stat-card"><div class="stat-label">Saldo Bersih</div><div class="stat-value" id="reportNet">Rp 0</div></div>
-<div class="stat-card cyan"><div class="stat-label">Total Tamu</div><div class="stat-value" id="reportGuests">0</div></div>
-</div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-top:1rem">
-<div class="card"><div class="card-header"><div class="card-title">Top Marketing</div></div><div class="top-list" id="reportTopMarketing"></div></div>
-<div class="card"><div class="card-header"><div class="card-title">Top Unit</div></div><div class="top-list" id="reportTopUnits"></div></div>
-<div class="card"><div class="card-header"><div class="card-title">Durasi Populer</div></div><div class="top-list" id="reportTopDuration"></div></div>
-<div class="card"><div class="card-header"><div class="card-title">Metode Bayar</div></div><div class="payment-split" id="reportPaymentBreakdown"></div></div>
-</div>
-</div>
-</div>
-</div>
+
+<nav class="nav">
+  <div class="nav-content">
+    <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="nav-btn" data-tab="rental" onclick="switchTab('rental')">Input Sewa</button>
+    <button class="nav-btn" data-tab="transaction" onclick="switchTab('transaction')">Transaksi</button>
+    <button class="nav-btn" data-tab="units" onclick="switchTab('units')">Unit<span class="badge-count" id="checkoutBadge" style="display:none">0</span></button>
+    <button class="nav-btn" data-tab="history" onclick="switchTab('history')">Riwayat</button>
+    <button class="nav-btn" data-tab="report" onclick="switchTab('report')">Laporan</button>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- DASHBOARD -->
+
+  <div id="dashboard" class="tab-content active">
+    <div class="checkout-alert" id="checkoutAlert" style="display:none">
+      <div class="checkout-alert-icon">⚠️</div>
+      <div class="checkout-alert-content">
+        <div class="checkout-alert-title">Unit Segera Checkout!</div>
+        <div class="checkout-alert-list" id="checkoutAlertList"></div>
+      </div>
+      <button class="btn btn-warning btn-sm" onclick="switchTab('units')">Lihat Unit</button>
+    </div>
+    <div class="quick-actions">
+      <button class="quick-action-btn success" onclick="switchTab('rental')">+ Input Sewa Baru</button>
+      <button class="quick-action-btn" onclick="switchTab('transaction')">+ Tambah Pemasukan</button>
+      <button class="quick-action-btn danger" onclick="switchTab('transaction')">- Tambah Pengeluaran</button>
+      <button class="quick-action-btn" onclick="exportDailyReport()">📥 Export Hari Ini</button>
+    </div>
+    <div class="dashboard-grid">
+      <div class="stat-card">
+        <div class="stat-card-inner">
+          <div class="stat-content">
+            <div class="stat-label">Saldo Hari Ini</div>
+            <div class="stat-value" id="todaySaldo">Rp 0</div>
+            <div class="stat-breakdown">
+              <div class="stat-breakdown-item cash">C: <span id="todayCash">0</span></div>
+              <div class="stat-breakdown-item transfer">T: <span id="todayTransfer">0</span></div>
+              <div class="stat-breakdown-item qr">Q: <span id="todayQR">0</span></div>
+            </div>
+          </div>
+          <div class="stat-icon">💰</div>
+        </div>
+      </div>
+      <div class="stat-card success">
+        <div class="stat-card-inner">
+          <div class="stat-content">
+            <div class="stat-label">Pemasukan Hari Ini</div>
+            <div class="stat-value" id="todayIncome">Rp 0</div>
+            <div class="stat-breakdown">
+              <div class="stat-breakdown-item">Sewa: <span id="todayRentalIncome">0</span></div>
+              <div class="stat-breakdown-item">Lain: <span id="todayOtherIncome">0</span></div>
+            </div>
+          </div>
+          <div class="stat-icon">📈</div>
+        </div>
+      </div>
+      <div class="stat-card danger">
+        <div class="stat-card-inner">
+          <div class="stat-content">
+            <div class="stat-label">Pengeluaran Hari Ini</div>
+            <div class="stat-value" id="todayExpense">Rp 0</div>
+            <div class="stat-breakdown">
+              <div class="stat-breakdown-item" id="topExpenseCategory">-</div>
+            </div>
+          </div>
+          <div class="stat-icon">📉</div>
+        </div>
+      </div>
+      <div class="stat-card cyan">
+        <div class="stat-card-inner">
+          <div class="stat-content">
+            <div class="stat-label">Tamu Hari Ini</div>
+            <div class="stat-value" id="todayGuests">0</div>
+            <div class="stat-breakdown">
+              <div class="stat-breakdown-item"><span id="todayUnitsUsed">0</span> unit terpakai</div>
+            </div>
+          </div>
+          <div class="stat-icon">👥</div>
+        </div>
+      </div>
+      <div class="stat-card warning">
+        <div class="stat-card-inner">
+          <div class="stat-content">
+            <div class="stat-label">Fee Marketing Pending</div>
+            <div class="stat-value" id="unpaidFee">Rp 0</div>
+            <div class="stat-breakdown">
+              <div class="stat-breakdown-item" id="feeBreakdown">-</div>
+            </div>
+          </div>
+          <div class="stat-icon">💸</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-inner">
+          <div class="stat-content">
+            <div class="stat-label">Saldo Bulan Ini</div>
+            <div class="stat-value" id="monthSaldo">Rp 0</div>
+            <div class="stat-breakdown">
+              <div class="stat-breakdown-item"><span id="monthGuests">0</span> total tamu</div>
+            </div>
+          </div>
+          <div class="stat-icon">📅</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;">
+      <div class="card">
+        <div class="card-header"><div class="card-title"><div class="card-title-icon warning">🏆</div>Top Marketing Hari Ini</div></div>
+        <div class="top-list" id="topMarketing"><div class="empty-state"><div class="empty-state-text">Belum ada data</div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title"><div class="card-title-icon danger">🏢</div>Unit Terlaris Hari Ini</div></div>
+        <div class="top-list" id="topUnits"><div class="empty-state"><div class="empty-state-text">Belum ada data</div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title"><div class="card-title-icon cyan">⏱️</div>Durasi Populer Hari Ini</div></div>
+        <div class="top-list" id="topDurations"><div class="empty-state"><div class="empty-state-text">Belum ada data</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RENTAL -->
+
+  <div id="rental" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="card-title-icon primary">📝</div>Input Data Penyewaan Unit</div>
+        <button class="btn btn-secondary btn-sm" onclick="resetRentalForm()">Reset</button>
+      </div>
+      <form id="rentalForm" onsubmit="return handleRentalSubmit(event)">
+        <div class="form-grid" style="margin-bottom:1.5rem">
+          <div class="form-group">
+            <label class="form-label">Tipe Unit <span class="required">*</span></label>
+            <select class="form-select" id="unitType" required onchange="populateUnitNumbers()">
+              <option value="">Pilih Tipe</option>
+              <option value="Studio">Studio</option>
+              <option value="1BR">1 Bedroom</option>
+              <option value="2BR">2 Bedroom</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nomor Unit <span class="required">*</span></label>
+            <select class="form-select" id="unitNumber" required><option value="">Pilih Unit</option></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Marketing <span class="required">*</span></label>
+            <select class="form-select" id="marketing" required>
+              <option value="">Pilih Marketing</option>
+              <option value="Raisya">Raisya</option>
+              <option value="Ibu">Ibu</option>
+              <option value="Security">Security</option>
+              <option value="Sani">Sani</option>
+              <option value="Ari">Ari</option>
+              <option value="Iwa">Iwa</option>
+              <option value="DS">DS (Datang Sendiri)</option>
+              <option value="other">Lainnya...</option>
+            </select>
+          </div>
+          <div class="form-group" id="otherMarketingGroup" style="display:none">
+            <label class="form-label">Nama Marketing</label>
+            <input type="text" class="form-input" id="otherMarketing" placeholder="Ketik nama...">
+          </div>
+        </div>
+        <div class="form-grid" style="margin-bottom:1.5rem">
+          <div class="form-group">
+            <label class="form-label">Durasi <span class="required">*</span></label>
+            <select class="form-select" id="duration" required onchange="calcCheckout(); calcBasePrice(); updateDurationHint();">
+              <option value="">Pilih Durasi</option>
+              <optgroup label="Charge">
+                <option value="1J">1 Jam (Charge)</option>
+                <option value="2J">2 Jam (Charge)</option>
+              </optgroup>
+              <optgroup label="Regular">
+                <option value="3J">3 Jam</option>
+                <option value="4J">4 Jam</option>
+                <option value="5J">5 Jam</option>
+                <option value="6J">6 Jam</option>
+                <option value="7J">7 Jam</option>
+                <option value="8J">8 Jam</option>
+              </optgroup>
+              <optgroup label="Special">
+                <option value="PM">PM (Promo Malam)</option>
+                <option value="FD">Fullday (24 Jam)</option>
+              </optgroup>
+            </select>
+            <div class="form-hint" id="durationHint"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Check-in <span class="required">*</span></label>
+            <input type="time" class="form-input" id="checkIn" required onchange="calcCheckout()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Check-out (Auto)</label>
+            <input type="time" class="form-input readonly" id="checkOut" readonly>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipe Harga <span class="required">*</span></label>
+            <select class="form-select" id="priceType" required onchange="calcBasePrice()">
+              <option value="weekday">Weekday</option>
+              <option value="weekend">Weekend</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Harga Dasar</label>
+            <input type="number" class="form-input" id="basePrice" placeholder="0">
+            <div class="form-hint">Harga standar referensi</div>
+          </div>
+        </div>
+        <div style="background:var(--bg-input);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem">
+          <h3 style="margin-bottom:1rem;font-size:1rem">Pembayaran Diterima Kantor</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Cash</label>
+              <input type="number" class="form-input" id="cashAmount" placeholder="0" value="0" oninput="updateTotal()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Transfer</label>
+              <input type="number" class="form-input" id="transferAmount" placeholder="0" value="0" oninput="updateTotal()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">QRIS</label>
+              <input type="number" class="form-input" id="qrAmount" placeholder="0" value="0" oninput="updateTotal()">
+            </div>
+          </div>
+          <div class="price-display" style="margin-top:1rem">
+            <div class="label">Total Pembayaran Masuk Saldo</div>
+            <div class="value" id="totalPayment">Rp 0</div>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Rekening Bank</label>
+            <select class="form-select" id="bankAccount">
+              <option value="">- Pilih jika Transfer -</option>
+              <option>BCA</option><option>Mandiri</option><option>BRI</option>
+              <option>BNI</option><option>Dana</option><option>OVO</option><option>GoPay</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fee Marketing</label>
+            <input type="number" class="form-input" id="marketingFee" placeholder="0" value="0">
+            <div class="form-hint">Isi 0 jika fee sudah dipotong</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status Bayar</label>
+            <select class="form-select" id="paymentStatus">
+              <option value="Lunas">Lunas</option>
+              <option value="Belum Lunas">Belum Lunas</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Identitas Tamu</label>
+            <input type="text" class="form-input" id="guestIdentity" placeholder="Nama / STNK / KTP">
+          </div>
+          <div class="form-group full-width">
+            <label class="form-label">Keterangan</label>
+            <input type="text" class="form-input" id="rentalNotes" placeholder="Catatan tambahan...">
+          </div>
+        </div>
+        <div class="btn-group" style="margin-top:1.5rem">
+          <button type="submit" class="btn btn-primary btn-lg">💾 Simpan Penyewaan</button>
+          <button type="button" class="btn btn-secondary" onclick="resetRentalForm()">Reset</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TRANSACTION -->
+
+  <div id="transaction" class="tab-content">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:1.5rem">
+      <div class="card">
+        <div class="card-header"><div class="card-title"><div class="card-title-icon success">➕</div>Tambah Pemasukan</div></div>
+        <form id="incomeForm" onsubmit="return handleIncomeSubmit(event)">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="form-label">Sumber <span class="required">*</span></label>
+              <input type="text" class="form-input" id="incomeSource" placeholder="Contoh: Setoran Jarrdin, Bonus" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nominal <span class="required">*</span></label>
+              <input type="number" class="form-input" id="incomeAmount" placeholder="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Metode <span class="required">*</span></label>
+              <select class="form-select" id="incomeMethod" required>
+                <option value="Cash">Cash</option>
+                <option value="Transfer">Transfer</option>
+                <option value="QR">QRIS</option>
+              </select>
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">Keterangan</label>
+              <input type="text" class="form-input" id="incomeNotes" placeholder="Detail...">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success" style="margin-top:1rem;width:100%">Tambah Pemasukan</button>
+        </form>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title"><div class="card-title-icon danger">➖</div>Tambah Pengeluaran</div></div>
+        <form id="expenseForm" onsubmit="return handleExpenseSubmit(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Kategori <span class="required">*</span></label>
+              <select class="form-select" id="expenseCategory" required>
+                <option value="">Pilih</option>
+                <option value="UM">UM</option>
+                <option value="Gaji">Gaji</option>
+                <option value="Kasbon">Kasbon</option>
+                <option value="Supplies">Supplies</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Utilitas">Utilitas</option>
+                <option value="Abodemen">Abodemen</option>
+                <option value="Top Up Link">Top Up Link</option>
+                <option value="Setoran Kantor">Setoran Kantor</option>
+                <option value="Fee Marketing">Fee Marketing</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Penerima <span class="required">*</span></label>
+              <input type="text" class="form-input" id="expenseRecipient" placeholder="Nama" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nominal <span class="required">*</span></label>
+              <input type="number" class="form-input" id="expenseAmount" placeholder="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Metode <span class="required">*</span></label>
+              <select class="form-select" id="expenseMethod" required>
+                <option value="Cash">Cash</option>
+                <option value="Transfer">Transfer</option>
+                <option value="QR">QRIS</option>
+              </select>
+            </div>
+            <div class="form-group full-width">
+              <label class="form-label">Keterangan</label>
+              <input type="text" class="form-input" id="expenseNotes" placeholder="Detail...">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-danger" style="margin-top:1rem;width:100%">Tambah Pengeluaran</button>
+        </form>
+      </div>
+    </div>
+    <div class="card" style="margin-top:1.5rem">
+      <div class="card-header"><div class="card-title"><div class="card-title-icon primary">📋</div>Transaksi Terbaru</div></div>
+      <div class="table-container" style="max-height:400px;overflow-y:auto">
+        <table><thead><tr><th>Waktu</th><th>Jenis</th><th>Keterangan</th><th>Metode</th><th>Nominal</th></tr></thead>
+        <tbody id="recentTransactions"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- UNITS -->
+
+  <div id="units" class="tab-content">
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="card-title-icon cyan">⚙️</div>Manajemen Unit</div></div>
+      <div class="form-grid" style="padding:1rem;">
+        <div class="form-group">
+          <label class="form-label">Tambah Unit Baru</label>
+          <input type="text" class="form-input" id="newUnitNumber" placeholder="Contoh: TA1123">
+          <select class="form-select" id="newUnitType" style="margin-top:0.5rem;">
+            <option value="">Pilih Tipe</option>
+            <option value="Studio">Studio</option>
+            <option value="1BR">1BR</option>
+            <option value="2BR">2BR</option>
+          </select>
+          <button class="btn btn-success btn-sm" onclick="handleAddUnit()" style="margin-top:0.5rem;">Tambah</button>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hapus Unit</label>
+          <input type="text" class="form-input" id="removeUnitNumber" placeholder="Ketik nomor unit">
+          <button class="btn btn-danger btn-sm" onclick="handleRemoveUnit()" style="margin-top:0.5rem;">Hapus</button>
+        </div>
+      </div>
+      <div class="form-hint" style="padding:0 1rem 1rem;">Gunakan dengan hati-hati. Unit yang sedang disewa tidak dapat dihapus.</div>
+    </div>
+    <div class="filter-section">
+      <div class="form-group" style="flex:2">
+        <label class="form-label">Cari Unit</label>
+        <input type="text" class="form-input" id="searchUnit" placeholder="Ketik nomor unit..." oninput="renderUnitGrid()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipe</label>
+        <select class="form-select" id="filterUnitType" onchange="renderUnitGrid()">
+          <option value="">Semua</option><option value="Studio">Studio</option>
+          <option value="1BR">1BR</option><option value="2BR">2BR</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-select" id="filterUnitStatus" onchange="renderUnitGrid()">
+          <option value="">Semua</option>
+          <option value="available">Tersedia</option>
+          <option value="occupied">Terisi</option>
+          <option value="checkout-soon">Segera CO</option>
+        </select>
+      </div>
+    </div>
+    <div class="dashboard-grid" style="margin-bottom:1.5rem">
+      <div class="stat-card success"><div class="stat-label">Tersedia</div><div class="stat-value" id="availableCount">0</div></div>
+      <div class="stat-card danger"><div class="stat-label">Terisi</div><div class="stat-value" id="occupiedCount">0</div></div>
+      <div class="stat-card warning"><div class="stat-label">Segera CO</div><div class="stat-value" id="checkoutSoonCountStat">0</div></div>
+    </div>
+    <div id="unitGridContainer"></div>
+  </div>
+
+  <!-- HISTORY -->
+
+  <div id="history" class="tab-content">
+    <div class="filter-section">
+      <div class="form-group">
+        <label class="form-label">Tanggal</label>
+        <input type="date" class="form-input" id="filterDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Jenis</label>
+        <select class="form-select" id="filterType">
+          <option value="">Semua</option>
+          <option value="rental">Sewa</option>
+          <option value="income">Pemasukan</option>
+          <option value="expense">Pengeluaran</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Marketing</label>
+        <select class="form-select" id="filterMarketing">
+          <option value="">Semua</option>
+          <option>Raisya</option><option>Ibu</option><option>Security</option>
+          <option>Sani</option><option>Ari</option><option>Iwa</option><option>DS</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">&nbsp;</label>
+        <div class="btn-group">
+          <button class="btn btn-primary btn-sm" onclick="applyFilters()">Filter</button>
+          <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Clear</button>
+          <button class="btn btn-success btn-sm" onclick="exportCSV()">Export</button>
+        </div>
+      </div>
+    </div>
+    <div class="dashboard-grid" style="margin-bottom:1rem">
+      <div class="stat-card success" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Masuk</div><div class="stat-value" id="historyTotalIn" style="font-size:1.25rem">Rp 0</div></div>
+      <div class="stat-card danger" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Keluar</div><div class="stat-value" id="historyTotalOut" style="font-size:1.25rem">Rp 0</div></div>
+      <div class="stat-card" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Saldo</div><div class="stat-value" id="historyNet" style="font-size:1.25rem">Rp 0</div></div>
+      <div class="stat-card cyan" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Record</div><div class="stat-value" id="historyCount" style="font-size:1.25rem">0</div></div>
+    </div>
+    <div class="table-container">
+      <table><thead><tr><th>#</th><th>Waktu</th><th>Jenis</th><th>Unit/Sumber</th><th>Marketing</th><th>Durasi</th><th>Total</th><th>Metode</th><th>Ket</th><th>Aksi</th></tr></thead>
+      <tbody id="historyTable"></tbody></table>
+    </div>
+  </div>
+
+  <!-- REPORT -->
+
+  <div id="report" class="tab-content">
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="card-title-icon primary">📊</div>Generate Laporan</div></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Dari Tanggal</label>
+          <input type="date" class="form-input" id="reportStart">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sampai Tanggal</label>
+          <input type="date" class="form-input" id="reportEnd">
+        </div>
+        <div class="form-group">
+          <label class="form-label">&nbsp;</label>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="generateReport()">Generate</button>
+            <button class="btn btn-success" onclick="exportReport()">Export</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="reportResults" style="display:none;margin-top:1.5rem">
+      <div class="dashboard-grid">
+        <div class="stat-card success"><div class="stat-label">Total Pemasukan</div><div class="stat-value" id="reportIncome">Rp 0</div></div>
+        <div class="stat-card danger"><div class="stat-label">Total Pengeluaran</div><div class="stat-value" id="reportExpense">Rp 0</div></div>
+        <div class="stat-card"><div class="stat-label">Saldo Bersih</div><div class="stat-value" id="reportNet">Rp 0</div></div>
+        <div class="stat-card cyan"><div class="stat-label">Total Tamu</div><div class="stat-value" id="reportGuests">0</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem;margin-top:1rem">
+        <div class="card"><div class="card-header"><div class="card-title">Top Marketing</div></div><div class="top-list" id="reportTopMarketing"></div></div>
+        <div class="card"><div class="card-header"><div class="card-title">Top Unit</div></div><div class="top-list" id="reportTopUnits"></div></div>
+        <div class="card"><div class="card-header"><div class="card-title">Durasi Populer</div></div><div class="top-list" id="reportTopDuration"></div></div>
+        <div class="card"><div class="card-header"><div class="card-title">Metode Bayar</div></div><div class="payment-split" id="reportPaymentBreakdown"></div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
 <script>
-// === FIREBASE CONFIG ===
+// ============================================================
+// FIREBASE CONFIG
+// ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyA2lSXx1OJYMIm3YdVMX1h0fSp6EfNIH_s",
   authDomain: "saldozeav2.firebaseapp.com",
@@ -454,33 +795,29 @@ try {
   firebase.initializeApp(firebaseConfig);
   db = firebase.database();
   firebaseInitialized = true;
-  console.log("Firebase initialized successfully");
 } catch(e) {
   console.error("Firebase init error:", e);
   showToast("Gagal konek ke server, mode offline aktif", "warning");
 }
 
-// === CONFIG ===
+// ============================================================
+// UNIT CONFIG
+// ============================================================
 let UNITS = JSON.parse(localStorage.getItem('unit_list')) || {
-  Studio: [
-    'DB1128', 'DA1025', 'DB1012', 'DB0917', 'DA0835', 'DB0511',
-    'DB0108', 'DB0106', 'JA1009A', 'JC1005', 'JA0111', 'RA0109',
-    'RA03A11', 'TB0318A', 'JC1005A', 'RA03A05'
-  ],
-  '1BR': [
-    'TA1123', 'TC1117', 'TB0301', 'TC0138', 'TC0107',
-    'TB1010', 'TB0306', 'TB0505', 'TB0316'
-  ],
-  '2BR': [
-    'TA1005', 'DA0120', 'DA03A21', 'RC0506', 'DB0907', 'DB0316'
-  ]
+  Studio: ['DB1128','DA1025','DB1012','DB0917','DA0835','DB0511','DB0108','DB0106','JA1009A','JC1005','JA0111','RA0109','RA03A11','TB0318A','JC1005A','RA03A05'],
+  '1BR':  ['TA1123','TC1117','TB0301','TC0138','TC0107','TB1010','TB0306','TB0505','TB0316'],
+  '2BR':  ['TA1005','DA0120','DA03A21','RC0506','DB0907','DB0316']
 };
 
 let ALL_UNITS = [];
-Object.entries(UNITS).forEach(([t,nums])=>nums.forEach(n=>ALL_UNITS.push({number:n,type:t})));
+function rebuildAllUnitsList() {
+  ALL_UNITS = [];
+  Object.entries(UNITS).forEach(([t, nums]) => nums.forEach(n => ALL_UNITS.push({ number: n, type: t })));
+}
+rebuildAllUnitsList();
 
-const DUR_HOURS = {'1J':1,'2J':2,'3J':3,'4J':4,'5J':5,'6J':6,'7J':7,'8J':8,'PM':12,'FD':24};
-const DUR_LABELS = {'1J':'1J Charge','2J':'2J Charge','3J':'3 Jam','4J':'4 Jam','5J':'5 Jam','6J':'6 Jam','7J':'7 Jam','8J':'8 Jam','PM':'Promo Malam','FD':'Fullday'};
+const DUR_HOURS  = { '1J':1,'2J':2,'3J':3,'4J':4,'5J':5,'6J':6,'7J':7,'8J':8,'PM':12,'FD':24 };
+const DUR_LABELS = { '1J':'1J Charge','2J':'2J Charge','3J':'3 Jam','4J':'4 Jam','5J':'5 Jam','6J':'6 Jam','7J':'7 Jam','8J':'8 Jam','PM':'Promo Malam','FD':'Fullday' };
 
 const PRICES = {
   Studio: {
@@ -498,195 +835,135 @@ const PRICES = {
 };
 
 let records = [];
-let isSyncingFromFirebase = false;
 
-// === DATE FUNCTIONS - RESET JAM 08:00 ===
+// ============================================================
+// DATE HELPERS — HARI BISNIS RESET JAM 08:00
+// ============================================================
 function getBusinessDate() {
   const now = new Date();
-  const hours = now.getHours();
-  if (hours < 8) {
-    now.setDate(now.getDate() - 1);
-  }
+  if (now.getHours() < 8) now.setDate(now.getDate() - 1);
   return now.toISOString().split('T')[0];
 }
-
 function getBusinessMonth() {
   const now = new Date();
-  const hours = now.getHours();
-  if (hours < 8) {
-    now.setDate(now.getDate() - 1);
-  }
+  if (now.getHours() < 8) now.setDate(now.getDate() - 1);
   return now.toISOString().slice(0, 7);
 }
 
-// === FIREBASE SYNC ===
-function syncRecordsFromFirebase(snapshot) {
-  if (isSyncingFromFirebase) return;
-  isSyncingFromFirebase = true;
-  try {
-    const firebaseRecords = snapshot.val();
-    if (firebaseRecords) {
-      records = Object.values(firebaseRecords);
-      saveRecordsToLocalStorage();
-      updateUIAfterDataChange();
-    } else {
-      records = [];
-      saveRecordsToLocalStorage();
-      updateUIAfterDataChange();
-    }
-  } catch(e) {
-    console.error("Sync error:", e);
-  }
-  setTimeout(() => { isSyncingFromFirebase = false; }, 100);
-}
+// ============================================================
+// FIREBASE SYNC — v3.3 FIX: PER-RECORD WRITES
+//
+// BUG v3.2 yang menyebabkan selisih data:
+//   db.ref('records').set(recordsMap) → full overwrite seluruh Firebase
+//   Jika Device A & B online bersamaan, device yang write terakhir
+//   menimpa semua transaksi device lain → data hilang!
+//
+// FIX: Setiap record ditulis/dihapus SECARA INDIVIDUAL di Firebase.
+//   Read tetap pakai listener on('value') → always up-to-date.
+// ============================================================
 
-function syncRecordsToFirebase() {
-  if (!firebaseInitialized || !db) {
-    console.log("Firebase not available, skipping sync");
-    return;
-  }
-  if (isSyncingFromFirebase) return;
-  isSyncingFromFirebase = true;
-  try {
-    const recordsMap = {};
-    records.forEach(record => {
-      recordsMap[record.id] = record;
+// Tulis SATU record baru ke Firebase
+function syncRecordToFirebase(record) {
+  if (!firebaseInitialized || !db) return;
+  db.ref('records/' + record.id).set(record)
+    .catch(function(err) {
+      console.error("Error saving record:", err);
+      showToast("Gagal simpan ke server!", "error");
     });
-    db.ref('records').set(recordsMap)
-      .then(() => {
-        setTimeout(() => { isSyncingFromFirebase = false; }, 100);
-      })
-      .catch(error => {
-        console.error("Error saving to Firebase:", error);
-        isSyncingFromFirebase = false;
-        showToast("Gagal simpan ke server", "error");
-      });
-  } catch(e) {
-    isSyncingFromFirebase = false;
-  }
 }
 
-function syncUnitsFromFirebase(snapshot) {
-  if (isSyncingFromFirebase) return;
-  isSyncingFromFirebase = true;
+// Update SATU record yang sudah ada
+function updateRecordInFirebase(record) {
+  if (!firebaseInitialized || !db) return;
+  db.ref('records/' + record.id).set(record)
+    .catch(function(err) { console.error("Error updating record:", err); });
+}
+
+// Hapus SATU record dari Firebase
+function deleteRecordFromFirebase(id) {
+  if (!firebaseInitialized || !db) return;
+  db.ref('records/' + id).remove()
+    .catch(function(err) {
+      console.error("Error deleting record:", err);
+      showToast("Gagal hapus dari server", "error");
+    });
+}
+
+// Listener: terima semua perubahan dari Firebase (real-time)
+function onFirebaseRecordsChange(snapshot) {
   try {
-    const firebaseUnits = snapshot.val();
-    if (firebaseUnits) {
-      UNITS = firebaseUnits;
+    const data = snapshot.val();
+    records = data ? Object.values(data) : [];
+    saveRecordsToLocalStorage();
+    updateUIAfterDataChange();
+  } catch(e) { console.error("Firebase records sync error:", e); }
+}
+
+function onFirebaseUnitsChange(snapshot) {
+  try {
+    const data = snapshot.val();
+    if (data) {
+      UNITS = data;
       saveUnitListToLocalStorage();
       rebuildAllUnitsList();
       updateUIAfterDataChange();
     }
-  } catch(e) {
-    console.error("Units sync error:", e);
-  }
-  setTimeout(() => { isSyncingFromFirebase = false; }, 100);
+  } catch(e) { console.error("Firebase units sync error:", e); }
 }
 
+// Units: full overwrite masih ok karena jarang berubah & selalu 1 sumber
 function syncUnitsToFirebase() {
   if (!firebaseInitialized || !db) return;
-  if (isSyncingFromFirebase) return;
-  isSyncingFromFirebase = true;
   db.ref('units').set(UNITS)
-    .then(() => {
-      setTimeout(() => { isSyncingFromFirebase = false; }, 100);
-    })
-    .catch(error => {
-      console.error("Error saving units:", error);
-      isSyncingFromFirebase = false;
-    });
+    .catch(function(err) { console.error("Error saving units:", err); });
 }
 
-// === LOCAL STORAGE ===
+// ============================================================
+// LOCAL STORAGE
+// ============================================================
 function saveRecordsToLocalStorage() {
-  try {
-    localStorage.setItem('rental_records', JSON.stringify(records));
-  } catch (e) {
-    console.error("Failed to save records:", e);
-  }
+  try { localStorage.setItem('rental_records', JSON.stringify(records)); } catch(e) {}
 }
-
 function loadRecordsFromLocalStorage() {
-  try {
-    const stored = localStorage.getItem('rental_records');
-    if (stored) {
-      records = JSON.parse(stored);
-    }
-  } catch (e) {
-    records = [];
-  }
+  try { const s = localStorage.getItem('rental_records'); if (s) records = JSON.parse(s); } catch(e) { records = []; }
 }
-
 function saveUnitListToLocalStorage() {
-  try {
-    localStorage.setItem('unit_list', JSON.stringify(UNITS));
-  } catch (e) {
-    console.error("Failed to save units:", e);
-  }
+  try { localStorage.setItem('unit_list', JSON.stringify(UNITS)); } catch(e) {}
 }
-
 function loadUnitListFromLocalStorage() {
-  try {
-    const stored = localStorage.getItem('unit_list');
-    if (stored) {
-      UNITS = JSON.parse(stored);
-    }
-  } catch (e) {
-    console.error("Failed to load units:", e);
-  }
+  try { const s = localStorage.getItem('unit_list'); if (s) UNITS = JSON.parse(s); } catch(e) {}
 }
 
-function rebuildAllUnitsList() {
-  ALL_UNITS = [];
-  Object.entries(UNITS).forEach(([t, nums]) => nums.forEach(n => ALL_UNITS.push({ number: n, type: t })));
-}
-
-// === UNIT MANAGEMENT ===
-function saveUnitList() {
+// ============================================================
+// UNIT MANAGEMENT
+// ============================================================
+function addUnit(number, type) {
+  if (!number || !type) { showToast("Nomor/tipe tidak boleh kosong!", "error"); return false; }
+  if (!UNITS[type]) { showToast("Tipe tidak valid!", "error"); return false; }
+  if (UNITS[type].includes(number)) { showToast("Unit " + number + " sudah ada!", "error"); return false; }
+  UNITS[type].push(number);
   rebuildAllUnitsList();
   saveUnitListToLocalStorage();
   syncUnitsToFirebase();
-  showToast("Daftar unit diperbarui!", "info");
-}
-
-function addUnit(number, type) {
-  if (!number || !type) {
-    showToast("Nomor atau tipe unit tidak boleh kosong!", "error");
-    return false;
-  }
-  if (!UNITS[type]) {
-    showToast("Tipe unit tidak valid!", "error");
-    return false;
-  }
-  if (UNITS[type].includes(number)) {
-    showToast("Unit " + number + " sudah ada!", "error");
-    return false;
-  }
-  UNITS[type].push(number);
-  saveUnitList();
+  showToast("Unit " + number + " ditambahkan!", "success");
   return true;
 }
 
 function removeUnit(number) {
   let found = false;
   for (const type in UNITS) {
-    const index = UNITS[type].indexOf(number);
-    if (index > -1) {
-      const rental = getActiveRental(number);
-      if (rental) {
-        showToast("Unit " + number + " sedang disewa! Tidak bisa dihapus.", "error");
-        return false;
-      }
-      UNITS[type].splice(index, 1);
-      found = true;
-      break;
+    const idx = UNITS[type].indexOf(number);
+    if (idx > -1) {
+      if (getActiveRental(number)) { showToast("Unit " + number + " sedang disewa!", "error"); return false; }
+      UNITS[type].splice(idx, 1);
+      found = true; break;
     }
   }
-  if (!found) {
-    showToast("Unit " + number + " tidak ditemukan!", "error");
-    return false;
-  }
-  saveUnitList();
+  if (!found) { showToast("Unit " + number + " tidak ditemukan!", "error"); return false; }
+  rebuildAllUnitsList();
+  saveUnitListToLocalStorage();
+  syncUnitsToFirebase();
+  showToast("Unit " + number + " dihapus!", "warning");
   return true;
 }
 
@@ -708,18 +985,19 @@ function handleRemoveUnit() {
   }
 }
 
-// === UTILS - FORMAT ANGKA ===
+// ============================================================
+// UTILS
+// ============================================================
 const fmt = n => 'Rp ' + Math.round(n || 0).toLocaleString('id-ID');
-
 const fmtShort = n => {
-  const num = Math.round(n || 0);
-  if (num >= 1000000) return 'Rp ' + (num / 1000000).toFixed(3).replace(/\.?0+$/, '') + 'jt';
-  if (num >= 1000) return 'Rp ' + (num / 1000).toFixed(0) + 'rb';
-  return 'Rp ' + num;
+  const v = Math.round(n || 0);
+  if (v >= 1000000) return 'Rp ' + (v / 1000000).toFixed(3).replace(/\.?0+$/, '') + 'jt';
+  if (v >= 1000) return 'Rp ' + (v / 1000).toFixed(0) + 'rb';
+  return 'Rp ' + v;
 };
-
 const genId = () => Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 const timeMin = t => { if (!t) return 0; const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+const nowTime = () => new Date().toTimeString().slice(0, 5);
 
 function addHours(t, hrs) {
   const [h, m] = t.split(':').map(Number);
@@ -731,33 +1009,20 @@ function showToast(msg, type) {
   const c = document.getElementById('toastContainer');
   const t = document.createElement('div');
   t.className = 'toast ' + type;
-  const icons = { success: '✓', error: '✕', warning: '!', info: 'i' };
-  t.innerHTML = '<span>' + (icons[type] || 'i') + '</span><span>' + msg + '</span>';
-  t.onclick = function () { t.remove(); };
+  const icons = { success: '✓', error: '✕', warning: '!', info: 'ℹ' };
+  t.innerHTML = '<span>' + (icons[type] || 'ℹ') + '</span><span>' + msg + '</span>';
+  t.onclick = () => t.remove();
   c.appendChild(t);
-  setTimeout(function () { if (t.parentNode) t.remove(); }, 4000);
+  setTimeout(() => { if (t.parentNode) t.remove(); }, 4000);
 }
 
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('active');
-}
-
-function saveRecords() {
-  saveRecordsToLocalStorage();
-  syncRecordsToFirebase();
-}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('active'); }
 
 function updateUIAfterDataChange() {
   updateDashboard();
-  if (document.getElementById('units').classList.contains('active')) {
-    renderUnitGrid();
-  }
-  if (document.getElementById('transaction').classList.contains('active')) {
-    renderRecentTransactions();
-  }
-  if (document.getElementById('history').classList.contains('active')) {
-    applyFilters();
-  }
+  if (document.getElementById('units').classList.contains('active')) renderUnitGrid();
+  if (document.getElementById('transaction').classList.contains('active')) renderRecentTransactions();
+  if (document.getElementById('history').classList.contains('active')) applyFilters();
 }
 
 function switchTab(id) {
@@ -776,12 +1041,15 @@ function switchTab(id) {
 
 function updateClock() {
   const now = new Date();
-  const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
   document.getElementById('headerDate').textContent = days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
   document.getElementById('headerClock').textContent = now.toTimeString().slice(0, 8);
 }
 
+// ============================================================
+// UNIT STATUS
+// ============================================================
 function getActiveRental(unitNum) {
   const today = getBusinessDate();
   const nowM = timeMin(nowTime());
@@ -807,6 +1075,9 @@ function getUnitStatus(unitNum) {
   return { status: rem <= 30 ? 'checkout-soon' : 'occupied', rental, remaining: rem };
 }
 
+// ============================================================
+// UNIT GRID RENDER
+// ============================================================
 function renderUnitGrid() {
   const search = (document.getElementById('searchUnit')?.value || '').toLowerCase();
   const fType = document.getElementById('filterUnitType')?.value || '';
@@ -829,16 +1100,16 @@ function renderUnitGrid() {
   const badge = document.getElementById('checkoutBadge');
   badge.style.display = coSoon > 0 ? '' : 'none';
   badge.textContent = coSoon;
-  let html = '';
   const labels = { Studio: 'Studio', '1BR': '1 Bedroom', '2BR': '2 Bedroom' };
+  let html = '';
   ['Studio', '1BR', '2BR'].forEach(type => {
     const units = sections[type];
     if (!units || !units.length) return;
     html += '<div class="unit-section"><div class="unit-section-title">' + labels[type] + ' <span class="count">' + units.length + '</span></div><div class="unit-grid">';
     units.forEach(u => {
-      const sLabel = u.status === 'available' ? 'Tersedia' : u.status === 'checkout-soon' ? 'CO ' + u.remaining + 'm' : 'Terisi';
+      const sLabel = u.status === 'available' ? 'Tersedia' : u.status === 'checkout-soon' ? '⚠ CO ' + u.remaining + 'm' : 'Terisi';
       let info = '';
-      if (u.rental) info = '<div class="unit-info"><div class="unit-guest">' + (u.rental.guestIdentity || u.rental.marketing || '-') + '</div><div class="unit-timer">' + u.rental.checkIn + '-' + u.rental.checkOut + '</div></div>';
+      if (u.rental) info = '<div class="unit-info"><div class="unit-guest">👤 ' + (u.rental.guestIdentity || u.rental.marketing || '-') + '</div><div class="unit-timer">⏱ ' + u.rental.checkIn + ' – ' + u.rental.checkOut + '</div></div>';
       html += '<div class="unit-card ' + u.status + '" onclick="onUnitClick(\'' + u.number + '\')"><div class="unit-header"><div class="unit-number">' + u.number + '</div><div class="unit-type-badge">' + u.type + '</div></div><div class="unit-status">' + sLabel + '</div>' + info + '</div>';
     });
     html += '</div></div>';
@@ -854,15 +1125,13 @@ function onUnitClick(num) {
     switchTab('rental');
     document.getElementById('unitType').value = unit.type;
     populateUnitNumbers();
-    setTimeout(() => {
-      document.getElementById('unitNumber').value = num;
-    }, 50);
+    setTimeout(() => { document.getElementById('unitNumber').value = num; }, 50);
     showToast('Unit ' + num + ' dipilih', 'info');
     return;
   }
-  document.getElementById('modalTitle').textContent = 'Unit ' + num;
-  const statusText = status === 'checkout-soon' ? 'Segera CO' : 'Terisi';
+  const statusText = status === 'checkout-soon' ? '⚠ Segera CO' : '🔴 Terisi';
   const statusColor = status === 'checkout-soon' ? 'var(--accent-warning)' : 'var(--accent-danger)';
+  document.getElementById('modalTitle').textContent = 'Unit ' + num;
   document.getElementById('modalBody').innerHTML =
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">' +
     '<div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">STATUS</div><div style="font-weight:700;color:' + statusColor + '">' + statusText + '</div></div>' +
@@ -873,7 +1142,9 @@ function onUnitClick(num) {
     '<div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md)"><div style="font-size:0.7rem;color:var(--text-muted)">TOTAL</div><div style="font-weight:700;color:var(--accent-1)">' + fmt(rental.totalPayment) + '</div></div>' +
     '<div style="padding:1rem;background:var(--bg-input);border-radius:var(--radius-md);grid-column:1/-1"><div style="font-size:0.7rem;color:var(--text-muted)">TAMU</div><div style="font-weight:700">' + (rental.guestIdentity || '-') + '</div></div>' +
     '</div>';
-  document.getElementById('modalFooter').innerHTML = '<button class="btn btn-warning btn-sm" onclick="forceCheckout(\'' + rental.id + '\')">Force CO</button><button class="btn btn-secondary btn-sm" onclick="closeModal()">Tutup</button>';
+  document.getElementById('modalFooter').innerHTML =
+    '<button class="btn btn-warning btn-sm" onclick="forceCheckout(\'' + rental.id + '\')">Force CO</button>' +
+    '<button class="btn btn-secondary btn-sm" onclick="closeModal()">Tutup</button>';
   document.getElementById('modalOverlay').classList.add('active');
 }
 
@@ -882,54 +1153,54 @@ function forceCheckout(id) {
   if (r) {
     r.checkOut = nowTime();
     r.notes = (r.notes || '') + ' [Force CO]';
-    saveRecords();
+    saveRecordsToLocalStorage();
+    updateRecordInFirebase(r); // FIX: update hanya record ini
     closeModal();
     renderUnitGrid();
     updateDashboard();
-    showToast('Unit di-checkout', 'success');
+    showToast('Unit di-checkout paksa', 'success');
   }
 }
 
+// ============================================================
+// RENTAL FORM
+// ============================================================
 function populateUnitNumbers() {
   const type = document.getElementById('unitType').value;
   const sel = document.getElementById('unitNumber');
-  const currentValue = sel.value;
+  const cur = sel.value;
   sel.innerHTML = '<option value="">Pilih Unit</option>';
   if (!type || !UNITS[type]) return;
   UNITS[type].forEach(num => {
     const { status } = getUnitStatus(num);
-    const icon = status === 'available' ? '✓' : status === 'checkout-soon' ? '!' : '✕';
+    const icon = status === 'available' ? '✓' : status === 'checkout-soon' ? '⚠' : '✕';
     const opt = document.createElement('option');
     opt.value = num;
     opt.textContent = icon + ' ' + num;
     sel.appendChild(opt);
   });
-  if (currentValue) {
-    sel.value = currentValue;
-  }
+  if (cur) sel.value = cur;
 }
 
 function calcCheckout() {
   const ci = document.getElementById('checkIn').value;
   const dur = document.getElementById('duration').value;
-  if (ci && dur && DUR_HOURS[dur]) {
-    document.getElementById('checkOut').value = addHours(ci, DUR_HOURS[dur]);
-  }
+  if (ci && dur && DUR_HOURS[dur]) document.getElementById('checkOut').value = addHours(ci, DUR_HOURS[dur]);
 }
 
 function calcBasePrice() {
   const type = document.getElementById('unitType').value;
   const dur = document.getElementById('duration').value;
   const pt = document.getElementById('priceType').value;
-  if (type && dur && pt !== 'custom' && PRICES[type] && PRICES[type][pt]) {
+  if (type && dur && pt !== 'custom' && PRICES[type]?.[pt]) {
     document.getElementById('basePrice').value = PRICES[type][pt][dur] || 0;
   }
 }
 
 function updateDurationHint() {
   const d = document.getElementById('duration').value;
-  const hints = { '1J': 'Charge telat CO/early CI', '2J': 'Charge telat CO/early CI', 'PM': 'Promo malam 21:00-09:00', 'FD': 'Full 24 jam' };
-  document.getElementById('durationHint').textContent = hints[d] || ('Durasi ' + (DUR_HOURS[d] || 0) + ' jam');
+  const hints = { '1J':'Charge telat CO/early CI', '2J':'Charge telat CO/early CI', 'PM':'Promo malam 21:00–09:00', 'FD':'Full 24 jam' };
+  document.getElementById('durationHint').textContent = hints[d] || (DUR_HOURS[d] ? 'Durasi ' + DUR_HOURS[d] + ' jam' : '');
 }
 
 function updateTotal() {
@@ -939,6 +1210,11 @@ function updateTotal() {
   document.getElementById('totalPayment').textContent = fmt(c + t + q);
 }
 
+function autoSetPriceType() {
+  const d = new Date().getDay();
+  document.getElementById('priceType').value = (d === 0 || d === 6) ? 'weekend' : 'weekday';
+}
+
 function resetRentalForm() {
   document.getElementById('rentalForm').reset();
   document.getElementById('unitNumber').innerHTML = '<option value="">Pilih Unit</option>';
@@ -946,25 +1222,14 @@ function resetRentalForm() {
   document.getElementById('totalPayment').textContent = 'Rp 0';
   document.getElementById('durationHint').textContent = '';
   document.getElementById('otherMarketingGroup').style.display = 'none';
-  ['cashAmount', 'transferAmount', 'qrAmount', 'marketingFee'].forEach(id => document.getElementById(id).value = '0');
+  ['cashAmount','transferAmount','qrAmount','marketingFee'].forEach(id => { document.getElementById(id).value = '0'; });
   autoSetPriceType();
-  autoSetCheckIn();
-}
-
-function autoSetPriceType() {
-  const d = new Date().getDay();
-  document.getElementById('priceType').value = (d === 0 || d === 6) ? 'weekend' : 'weekday';
-}
-
-function autoSetCheckIn() {
   document.getElementById('checkIn').value = nowTime();
 }
 
-function nowTime() {
-  return new Date().toTimeString().slice(0, 5);
-}
-
-// === FORM HANDLERS ===
+// ============================================================
+// FORM SUBMIT HANDLERS
+// ============================================================
 function handleRentalSubmit(e) {
   e.preventDefault();
   let marketing = document.getElementById('marketing').value;
@@ -972,7 +1237,6 @@ function handleRentalSubmit(e) {
     marketing = document.getElementById('otherMarketing').value.trim();
     if (!marketing) { showToast('Isi nama marketing!', 'error'); return false; }
   }
-
   const unitNumber = document.getElementById('unitNumber').value;
   if (!unitNumber) { showToast('Pilih nomor unit!', 'error'); return false; }
 
@@ -983,8 +1247,8 @@ function handleRentalSubmit(e) {
     date: getBusinessDate(),
     time: nowTime(),
     unitType: document.getElementById('unitType').value,
-    unitNumber: unitNumber,
-    marketing: marketing,
+    unitNumber,
+    marketing,
     duration: document.getElementById('duration').value,
     checkIn: document.getElementById('checkIn').value,
     checkOut: document.getElementById('checkOut').value,
@@ -1003,17 +1267,15 @@ function handleRentalSubmit(e) {
   data.totalPayment = data.cashAmount + data.transferAmount + data.qrAmount;
   data.feeStatus = data.marketingFee > 0 ? 'unpaid' : 'paid';
 
-  if (!data.unitType || !data.duration || !data.checkIn) {
-    showToast('Lengkapi field wajib!', 'error');
-    return false;
-  }
+  if (!data.unitType || !data.duration || !data.checkIn) { showToast('Lengkapi field wajib!', 'error'); return false; }
 
   const { status } = getUnitStatus(data.unitNumber);
   if (status !== 'available' && !confirm('Unit ' + data.unitNumber + ' sedang terisi. Lanjutkan?')) return false;
 
   records.push(data);
-  saveRecords();
-  showToast('Sewa ' + data.unitNumber + ' berhasil!', 'success');
+  saveRecordsToLocalStorage();
+  syncRecordToFirebase(data); // FIX: tulis HANYA record ini ke Firebase
+  showToast('Sewa ' + data.unitNumber + ' berhasil disimpan!', 'success');
   resetRentalForm();
   updateDashboard();
   return false;
@@ -1023,7 +1285,7 @@ function handleIncomeSubmit(e) {
   e.preventDefault();
   const amt = parseInt(document.getElementById('incomeAmount').value) || 0;
   if (!amt) { showToast('Isi nominal!', 'error'); return false; }
-  records.push({
+  const data = {
     id: genId(),
     type: 'income',
     timestamp: Date.now(),
@@ -1033,9 +1295,11 @@ function handleIncomeSubmit(e) {
     amount: amt,
     method: document.getElementById('incomeMethod').value,
     notes: document.getElementById('incomeNotes').value.trim()
-  });
-  saveRecords();
-  showToast('Pemasukan ' + fmt(amt) + ' ditambah!', 'success');
+  };
+  records.push(data);
+  saveRecordsToLocalStorage();
+  syncRecordToFirebase(data); // FIX: tulis HANYA record ini ke Firebase
+  showToast('Pemasukan ' + fmt(amt) + ' ditambahkan!', 'success');
   document.getElementById('incomeForm').reset();
   renderRecentTransactions();
   updateDashboard();
@@ -1048,10 +1312,18 @@ function handleExpenseSubmit(e) {
   const cat = document.getElementById('expenseCategory').value;
   const recip = document.getElementById('expenseRecipient').value.trim();
   if (!cat || !recip || !amt) { showToast('Lengkapi semua field!', 'error'); return false; }
+
+  // Update feeStatus & sync per-record ke Firebase
   if (cat === 'Fee Marketing') {
-    records.filter(r => r.type === 'rental' && r.feeStatus === 'unpaid' && r.marketing === recip).forEach(r => r.feeStatus = 'paid');
+    records
+      .filter(r => r.type === 'rental' && r.feeStatus === 'unpaid' && r.marketing === recip)
+      .forEach(r => {
+        r.feeStatus = 'paid';
+        updateRecordInFirebase(r); // FIX: sync perubahan feeStatus per record
+      });
   }
-  records.push({
+
+  const data = {
     id: genId(),
     type: 'expense',
     timestamp: Date.now(),
@@ -1062,8 +1334,10 @@ function handleExpenseSubmit(e) {
     amount: amt,
     method: document.getElementById('expenseMethod').value,
     notes: document.getElementById('expenseNotes').value.trim()
-  });
-  saveRecords();
+  };
+  records.push(data);
+  saveRecordsToLocalStorage();
+  syncRecordToFirebase(data); // FIX: tulis HANYA record ini ke Firebase
   showToast('Pengeluaran ' + fmt(amt) + ' dicatat!', 'success');
   document.getElementById('expenseForm').reset();
   renderRecentTransactions();
@@ -1071,46 +1345,22 @@ function handleExpenseSubmit(e) {
   return false;
 }
 
-// === EVENT LISTENERS ===
-document.getElementById('marketing').addEventListener('change', function () {
+document.getElementById('marketing').addEventListener('change', function() {
   document.getElementById('otherMarketingGroup').style.display = this.value === 'other' ? 'block' : 'none';
 });
 
-// === RENDER FUNCTIONS ===
-function renderRecentTransactions() {
-  const today = getBusinessDate();
-  const recs = records.filter(r => r.date === today).sort((a, b) => b.timestamp - a.timestamp).slice(0, 20);
-  const tbody = document.getElementById('recentTransactions');
-  if (!recs.length) { tbody.innerHTML = '<tr><td colspan="5" class="table-empty">Belum ada transaksi</td></tr>'; return; }
-  tbody.innerHTML = recs.map(r => {
-    let jenis, ket, nominal, method;
-    if (r.type === 'rental') {
-      jenis = '<span class="badge badge-primary">Sewa</span>';
-      ket = r.unitNumber + ' - ' + r.marketing + ' (' + (DUR_LABELS[r.duration] || r.duration) + ')';
-      nominal = '<span style="color:var(--accent-success)">+' + fmt(r.totalPayment) + '</span>';
-      method = [r.cashAmount > 0 ? 'C' : '', r.transferAmount > 0 ? 'T' : '', r.qrAmount > 0 ? 'Q' : ''].filter(Boolean).join(' ') || 'C';
-    } else if (r.type === 'income') {
-      jenis = '<span class="badge badge-success">Masuk</span>';
-      ket = r.source;
-      nominal = '<span style="color:var(--accent-success)">+' + fmt(r.amount) + '</span>';
-      method = { Cash: 'C', Transfer: 'T', QR: 'Q' }[r.method] || 'C';
-    } else {
-      jenis = '<span class="badge badge-danger">Keluar</span>';
-      ket = r.category + ': ' + r.recipient;
-      nominal = '<span style="color:var(--accent-danger)">-' + fmt(r.amount) + '</span>';
-      method = { Cash: 'C', Transfer: 'T', QR: 'Q' }[r.method] || 'C';
-    }
-    return '<tr><td>' + r.time + '</td><td>' + jenis + '</td><td>' + ket + '</td><td>' + method + '</td><td>' + nominal + '</td></tr>';
-  }).join('');
-}
-
+// ============================================================
+// DASHBOARD
+// ============================================================
 function updateDashboard() {
   const today = getBusinessDate();
   const month = getBusinessMonth();
   const todayRecs = records.filter(r => r.date === today && r.status !== 'cancelled');
   const monthRecs = records.filter(r => r.date && r.date.startsWith(month) && r.status !== 'cancelled');
-  let tCash = 0, tTransfer = 0, tQR = 0, rentalInc = 0, otherInc = 0, totalExp = 0, guests = 0, unpaidFees = 0;
-  const unitsUsed = new Set(), mktCounts = {}, unitCounts = {}, durCounts = {}, expCats = {}, feeMkt = {};
+
+  let tCash=0, tTransfer=0, tQR=0, rentalInc=0, otherInc=0, totalExp=0, guests=0, unpaidFees=0;
+  const unitsUsed=new Set(), mktCounts={}, unitCounts={}, durCounts={}, expCats={}, feeMkt={};
+
   todayRecs.forEach(r => {
     if (r.type === 'rental') {
       tCash += r.cashAmount || 0;
@@ -1127,22 +1377,22 @@ function updateDashboard() {
         feeMkt[r.marketing] = (feeMkt[r.marketing] || 0) + r.marketingFee;
       }
     } else if (r.type === 'income') {
-      const a = r.amount || 0;
-      otherInc += a;
+      const a = r.amount || 0; otherInc += a;
       if (r.method === 'Cash') tCash += a;
       else if (r.method === 'Transfer') tTransfer += a;
       else tQR += a;
     } else if (r.type === 'expense') {
-      const a = r.amount || 0;
-      totalExp += a;
+      const a = r.amount || 0; totalExp += a;
       expCats[r.category] = (expCats[r.category] || 0) + a;
       if (r.method === 'Cash') tCash -= a;
       else if (r.method === 'Transfer') tTransfer -= a;
       else tQR -= a;
     }
   });
+
   const totalIncome = rentalInc + otherInc;
   const saldo = totalIncome - totalExp;
+
   document.getElementById('todaySaldo').textContent = fmt(saldo);
   document.getElementById('todayCash').textContent = fmtShort(tCash);
   document.getElementById('todayTransfer').textContent = fmtShort(tTransfer);
@@ -1155,11 +1405,12 @@ function updateDashboard() {
   document.getElementById('todayUnitsUsed').textContent = unitsUsed.size;
   document.getElementById('unpaidFee').textContent = fmt(unpaidFees);
   document.getElementById('headerSaldo').textContent = fmtShort(saldo);
-  const topExpCat = Object.entries(expCats).sort((a, b) => b[1] - a[1])[0];
-  document.getElementById('topExpenseCategory').textContent = topExpCat ? (topExpCat[0] + ': ' + fmtShort(topExpCat[1])) : '-';
-  const feeList = Object.entries(feeMkt).map(([k, v]) => k + ': ' + fmtShort(v)).join(', ');
-  document.getElementById('feeBreakdown').textContent = feeList || '-';
-  let monthInc = 0, monthExp = 0, monthGuests = 0;
+
+  const topExpCat = Object.entries(expCats).sort((a,b) => b[1]-a[1])[0];
+  document.getElementById('topExpenseCategory').textContent = topExpCat ? topExpCat[0] + ': ' + fmtShort(topExpCat[1]) : '-';
+  document.getElementById('feeBreakdown').textContent = Object.entries(feeMkt).map(([k,v]) => k + ': ' + fmtShort(v)).join(', ') || '-';
+
+  let monthInc=0, monthExp=0, monthGuests=0;
   monthRecs.forEach(r => {
     if (r.type === 'rental') { monthInc += r.totalPayment || 0; monthGuests++; }
     else if (r.type === 'income') monthInc += r.amount || 0;
@@ -1167,14 +1418,12 @@ function updateDashboard() {
   });
   document.getElementById('monthSaldo').textContent = fmt(monthInc - monthExp);
   document.getElementById('monthGuests').textContent = monthGuests;
-  renderTopList('topMarketing', mktCounts, 'M');
-  renderTopList('topUnits', unitCounts, 'U');
-  renderTopList('topDurations', durCounts, 'D', true);
-  const coSoonUnits = [];
-  ALL_UNITS.forEach(u => {
-    const { status, rental, remaining } = getUnitStatus(u.number);
-    if (status === 'checkout-soon') coSoonUnits.push({ ...u, rental, remaining });
-  });
+
+  renderTopList('topMarketing', mktCounts, false);
+  renderTopList('topUnits', unitCounts, false);
+  renderTopList('topDurations', durCounts, true);
+
+  const coSoonUnits = ALL_UNITS.map(u => ({ ...u, ...getUnitStatus(u.number) })).filter(u => u.status === 'checkout-soon');
   const alertEl = document.getElementById('checkoutAlert');
   if (coSoonUnits.length) {
     alertEl.style.display = 'flex';
@@ -1182,26 +1431,60 @@ function updateDashboard() {
   } else alertEl.style.display = 'none';
 }
 
-function renderTopList(elId, counts, icon, isDuration) {
+function renderTopList(elId, counts, isDuration) {
   const el = document.getElementById(elId);
-  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0, 5);
   if (!sorted.length) { el.innerHTML = '<div class="empty-state"><div class="empty-state-text">Belum ada data</div></div>'; return; }
   el.innerHTML = sorted.map(([name, val], i) => {
-    const rank = i < 3 ? ['🥇', '🥈', '🥉'][i] : (i + 1);
+    const rank = i < 3 ? ['🥇','🥈','🥉'][i] : (i + 1);
     return '<div class="top-list-item"><span class="rank">' + rank + '</span><span class="name">' + (isDuration ? (DUR_LABELS[name] || name) : name) + '</span><span class="value">' + val + 'x</span></div>';
   }).join('');
 }
 
+// ============================================================
+// RECENT TRANSACTIONS
+// ============================================================
+function renderRecentTransactions() {
+  const today = getBusinessDate();
+  const recs = records.filter(r => r.date === today).sort((a,b) => b.timestamp - a.timestamp).slice(0, 20);
+  const tbody = document.getElementById('recentTransactions');
+  if (!recs.length) { tbody.innerHTML = '<tr><td colspan="5" class="table-empty">Belum ada transaksi hari ini</td></tr>'; return; }
+  tbody.innerHTML = recs.map(r => {
+    let jenis, ket, nominal, method;
+    if (r.type === 'rental') {
+      jenis = '<span class="badge badge-primary">Sewa</span>';
+      ket = r.unitNumber + ' – ' + r.marketing + ' (' + (DUR_LABELS[r.duration] || r.duration) + ')';
+      nominal = '<span style="color:var(--accent-success)">+' + fmt(r.totalPayment) + '</span>';
+      method = [r.cashAmount>0?'C':'', r.transferAmount>0?'T':'', r.qrAmount>0?'Q':''].filter(Boolean).join('/') || '-';
+    } else if (r.type === 'income') {
+      jenis = '<span class="badge badge-success">Masuk</span>';
+      ket = r.source;
+      nominal = '<span style="color:var(--accent-success)">+' + fmt(r.amount) + '</span>';
+      method = {Cash:'C',Transfer:'T',QR:'Q'}[r.method] || '-';
+    } else {
+      jenis = '<span class="badge badge-danger">Keluar</span>';
+      ket = r.category + ': ' + r.recipient;
+      nominal = '<span style="color:var(--accent-danger)">–' + fmt(r.amount) + '</span>';
+      method = {Cash:'C',Transfer:'T',QR:'Q'}[r.method] || '-';
+    }
+    return '<tr><td>' + r.time + '</td><td>' + jenis + '</td><td>' + ket + '</td><td>' + method + '</td><td>' + nominal + '</td></tr>';
+  }).join('');
+}
+
+// ============================================================
+// HISTORY / FILTERS
+// ============================================================
 function applyFilters() {
-  const filterDate = document.getElementById('filterDate').value;
-  const filterType = document.getElementById('filterType').value;
-  const filterMkt = document.getElementById('filterMarketing').value;
+  const fd = document.getElementById('filterDate').value;
+  const ft = document.getElementById('filterType').value;
+  const fm = document.getElementById('filterMarketing').value;
   let filtered = records.filter(r => r.status !== 'cancelled');
-  if (filterDate) filtered = filtered.filter(r => r.date === filterDate);
-  if (filterType) filtered = filtered.filter(r => r.type === filterType);
-  if (filterMkt) filtered = filtered.filter(r => r.marketing === filterMkt);
-  filtered.sort((a, b) => b.timestamp - a.timestamp);
-  let totalIn = 0, totalOut = 0;
+  if (fd) filtered = filtered.filter(r => r.date === fd);
+  if (ft) filtered = filtered.filter(r => r.type === ft);
+  if (fm) filtered = filtered.filter(r => r.marketing === fm);
+  filtered.sort((a,b) => b.timestamp - a.timestamp);
+
+  let totalIn=0, totalOut=0;
   filtered.forEach(r => {
     if (r.type === 'rental') totalIn += r.totalPayment || 0;
     else if (r.type === 'income') totalIn += r.amount || 0;
@@ -1211,32 +1494,31 @@ function applyFilters() {
   document.getElementById('historyTotalOut').textContent = fmt(totalOut);
   document.getElementById('historyNet').textContent = fmt(totalIn - totalOut);
   document.getElementById('historyCount').textContent = filtered.length;
+
   const tbody = document.getElementById('historyTable');
   if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="10" class="table-empty">Tidak ada data</td></tr>'; return; }
   tbody.innerHTML = filtered.map((r, i) => {
-    let jenis, unitSrc, mkt = '-', dur = '-', total, method, ket;
+    let jenis, unitSrc, mkt='-', dur='-', total, method, ket;
     if (r.type === 'rental') {
       jenis = '<span class="badge badge-primary">Sewa</span>';
-      unitSrc = r.unitNumber;
-      mkt = r.marketing;
-      dur = DUR_LABELS[r.duration] || r.duration;
+      unitSrc = r.unitNumber; mkt = r.marketing; dur = DUR_LABELS[r.duration] || r.duration;
       total = '<span style="color:var(--accent-success)">+' + fmt(r.totalPayment) + '</span>';
-      method = [r.cashAmount > 0 ? 'C' : '', r.transferAmount > 0 ? 'T' : '', r.qrAmount > 0 ? 'Q' : ''].filter(Boolean).join('') || '-';
+      method = [r.cashAmount>0?'C':'', r.transferAmount>0?'T':'', r.qrAmount>0?'Q':''].filter(Boolean).join('/') || '-';
       ket = [r.guestIdentity, r.notes].filter(Boolean).join(' | ') || '-';
     } else if (r.type === 'income') {
       jenis = '<span class="badge badge-success">Masuk</span>';
       unitSrc = r.source;
       total = '<span style="color:var(--accent-success)">+' + fmt(r.amount) + '</span>';
-      method = { Cash: 'C', Transfer: 'T', QR: 'Q' }[r.method] || '-';
+      method = {Cash:'C',Transfer:'T',QR:'Q'}[r.method] || '-';
       ket = r.notes || '-';
     } else {
       jenis = '<span class="badge badge-danger">Keluar</span>';
       unitSrc = r.category + ': ' + r.recipient;
-      total = '<span style="color:var(--accent-danger)">-' + fmt(r.amount) + '</span>';
-      method = { Cash: 'C', Transfer: 'T', QR: 'Q' }[r.method] || '-';
+      total = '<span style="color:var(--accent-danger)">–' + fmt(r.amount) + '</span>';
+      method = {Cash:'C',Transfer:'T',QR:'Q'}[r.method] || '-';
       ket = r.notes || '-';
     }
-    return '<tr><td>' + (i + 1) + '</td><td>' + r.date + '<br><small>' + r.time + '</small></td><td>' + jenis + '</td><td>' + unitSrc + '</td><td>' + mkt + '</td><td>' + dur + '</td><td>' + total + '</td><td>' + method + '</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis">' + ket + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteRecord(\'' + r.id + '\')" style="padding:0.3rem 0.5rem;font-size:0.7rem">X</button></td></tr>';
+    return '<tr><td>' + (i+1) + '</td><td>' + r.date + '<br><small>' + r.time + '</small></td><td>' + jenis + '</td><td>' + unitSrc + '</td><td>' + mkt + '</td><td>' + dur + '</td><td>' + total + '</td><td>' + method + '</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + ket + '</td><td><button class="btn btn-danger btn-sm" onclick="deleteRecord(\'' + r.id + '\')" style="padding:0.3rem 0.5rem;font-size:0.7rem">✕</button></td></tr>';
   }).join('');
 }
 
@@ -1248,40 +1530,44 @@ function clearFilters() {
 }
 
 function deleteRecord(id) {
-  if (!confirm('Hapus record ini?')) return;
+  if (!confirm('Hapus record ini? Tindakan tidak bisa dibatalkan.')) return;
   records = records.filter(r => r.id !== id);
-  saveRecords();
+  saveRecordsToLocalStorage();
+  deleteRecordFromFirebase(id); // FIX: hapus hanya record ini dari Firebase
   applyFilters();
   updateDashboard();
   showToast('Record dihapus', 'warning');
 }
 
+// ============================================================
+// EXPORT
+// ============================================================
 function exportCSV() {
-  const rows = [['Tanggal', 'Waktu', 'Jenis', 'Unit/Sumber', 'Marketing', 'Durasi', 'Total', 'Metode', 'Keterangan']];
-  const filtered = records.filter(r => r.status !== 'cancelled').sort((a, b) => b.timestamp - a.timestamp);
-  filtered.forEach(r => {
-    if (r.type === 'rental') rows.push([r.date, r.time, 'Sewa', r.unitNumber, r.marketing, DUR_LABELS[r.duration] || r.duration, r.totalPayment, 'C:' + r.cashAmount + '/T:' + r.transferAmount + '/Q:' + r.qrAmount, r.notes || '']);
-    else if (r.type === 'income') rows.push([r.date, r.time, 'Pemasukan', r.source, '-', '-', r.amount, r.method, r.notes || '']);
-    else rows.push([r.date, r.time, 'Pengeluaran', r.category + ': ' + r.recipient, '-', '-', r.amount, r.method, r.notes || '']);
+  const rows = [['Tanggal','Waktu','Jenis','Unit/Sumber','Marketing','Durasi','Total','Metode','Keterangan']];
+  records.filter(r => r.status !== 'cancelled').sort((a,b) => b.timestamp - a.timestamp).forEach(r => {
+    if (r.type === 'rental') rows.push([r.date,r.time,'Sewa',r.unitNumber,r.marketing,DUR_LABELS[r.duration]||r.duration,r.totalPayment,'C:'+r.cashAmount+'/T:'+r.transferAmount+'/Q:'+r.qrAmount,r.notes||'']);
+    else if (r.type === 'income') rows.push([r.date,r.time,'Pemasukan',r.source,'-','-',r.amount,r.method,r.notes||'']);
+    else rows.push([r.date,r.time,'Pengeluaran',r.category+': '+r.recipient,'-','-',r.amount,r.method,r.notes||'']);
   });
   downloadCSV(rows, 'riwayat_' + getBusinessDate() + '.csv');
+  showToast('Export berhasil!', 'success');
 }
 
 function exportDailyReport() {
   const today = getBusinessDate();
-  const recs = records.filter(r => r.date === today && r.status !== 'cancelled').sort((a, b) => a.timestamp - b.timestamp);
-  const rows = [['Waktu', 'Jenis', 'Detail', 'Nominal', 'Metode']];
+  const recs = records.filter(r => r.date === today && r.status !== 'cancelled').sort((a,b) => a.timestamp - b.timestamp);
+  const rows = [['Waktu','Jenis','Detail','Nominal','Metode']];
   recs.forEach(r => {
-    if (r.type === 'rental') rows.push([r.time, 'Sewa', r.unitNumber + ' ' + r.marketing + ' ' + (DUR_LABELS[r.duration] || r.duration), r.totalPayment, 'C:' + r.cashAmount + '/T:' + r.transferAmount + '/Q:' + r.qrAmount]);
-    else if (r.type === 'income') rows.push([r.time, 'Pemasukan', r.source, r.amount, r.method]);
-    else rows.push([r.time, 'Pengeluaran', r.category + ': ' + r.recipient, r.amount, r.method]);
+    if (r.type === 'rental') rows.push([r.time,'Sewa',r.unitNumber+' '+r.marketing+' '+(DUR_LABELS[r.duration]||r.duration),r.totalPayment,'C:'+r.cashAmount+'/T:'+r.transferAmount+'/Q:'+r.qrAmount]);
+    else if (r.type === 'income') rows.push([r.time,'Pemasukan',r.source,r.amount,r.method]);
+    else rows.push([r.time,'Pengeluaran',r.category+': '+r.recipient,r.amount,r.method]);
   });
   downloadCSV(rows, 'laporan_harian_' + today + '.csv');
   showToast('Export harian berhasil!', 'success');
 }
 
 function downloadCSV(rows, filename) {
-  const csv = rows.map(r => r.map(c => '"' + (c + '').replace(/"/g, '""') + '"').join(',')).join('\n');
+  const csv = rows.map(r => r.map(c => '"' + (c+'').replace(/"/g, '""') + '"').join(',')).join('\n');
   const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1290,44 +1576,40 @@ function downloadCSV(rows, filename) {
   URL.revokeObjectURL(a.href);
 }
 
+// ============================================================
+// REPORT
+// ============================================================
 function generateReport() {
   const start = document.getElementById('reportStart').value;
   const end = document.getElementById('reportEnd').value;
   if (!start || !end) { showToast('Pilih tanggal!', 'error'); return; }
   const recs = records.filter(r => r.date >= start && r.date <= end && r.status !== 'cancelled');
-  let inc = 0, exp = 0, guests = 0, cash = 0, transfer = 0, qr = 0;
-  const mktC = {}, unitC = {}, durC = {};
+  let inc=0, exp=0, guests=0, cash=0, transfer=0, qr=0;
+  const mktC={}, unitC={}, durC={};
   recs.forEach(r => {
     if (r.type === 'rental') {
-      inc += r.totalPayment || 0;
-      guests++;
-      cash += r.cashAmount || 0;
-      transfer += r.transferAmount || 0;
-      qr += r.qrAmount || 0;
-      mktC[r.marketing] = (mktC[r.marketing] || 0) + 1;
-      unitC[r.unitNumber] = (unitC[r.unitNumber] || 0) + 1;
-      durC[r.duration] = (durC[r.duration] || 0) + 1;
+      inc += r.totalPayment||0; guests++;
+      cash += r.cashAmount||0; transfer += r.transferAmount||0; qr += r.qrAmount||0;
+      mktC[r.marketing] = (mktC[r.marketing]||0)+1;
+      unitC[r.unitNumber] = (unitC[r.unitNumber]||0)+1;
+      durC[r.duration] = (durC[r.duration]||0)+1;
     } else if (r.type === 'income') {
-      inc += r.amount || 0;
-      if (r.method === 'Cash') cash += r.amount;
-      else if (r.method === 'Transfer') transfer += r.amount;
-      else qr += r.amount;
-    } else {
-      exp += r.amount || 0;
-    }
+      inc += r.amount||0;
+      if (r.method==='Cash') cash+=r.amount; else if (r.method==='Transfer') transfer+=r.amount; else qr+=r.amount;
+    } else { exp += r.amount||0; }
   });
   document.getElementById('reportResults').style.display = 'block';
   document.getElementById('reportIncome').textContent = fmt(inc);
   document.getElementById('reportExpense').textContent = fmt(exp);
   document.getElementById('reportNet').textContent = fmt(inc - exp);
   document.getElementById('reportGuests').textContent = guests;
-  renderTopList('reportTopMarketing', mktC, 'M');
-  renderTopList('reportTopUnits', unitC, 'U');
-  renderTopList('reportTopDuration', durC, 'D', true);
+  renderTopList('reportTopMarketing', mktC, false);
+  renderTopList('reportTopUnits', unitC, false);
+  renderTopList('reportTopDuration', durC, true);
   document.getElementById('reportPaymentBreakdown').innerHTML =
-    '<div class="payment-split-item cash"><div class="icon">💵</div><div class="amount">' + fmtShort(cash) + '</div><div class="label">Cash</div></div>' +
-    '<div class="payment-split-item transfer"><div class="icon">🏦</div><div class="amount">' + fmtShort(transfer) + '</div><div class="label">Transfer</div></div>' +
-    '<div class="payment-split-item qr"><div class="icon">📱</div><div class="amount">' + fmtShort(qr) + '</div><div class="label">QRIS</div></div>';
+    '<div class="payment-split-item cash"><div class="icon">💵</div><div class="amount">'+fmtShort(cash)+'</div><div class="label">Cash</div></div>' +
+    '<div class="payment-split-item transfer"><div class="icon">🏦</div><div class="amount">'+fmtShort(transfer)+'</div><div class="label">Transfer</div></div>' +
+    '<div class="payment-split-item qr"><div class="icon">📱</div><div class="amount">'+fmtShort(qr)+'</div><div class="label">QRIS</div></div>';
   showToast('Laporan berhasil di-generate!', 'success');
 }
 
@@ -1335,64 +1617,69 @@ function exportReport() {
   const start = document.getElementById('reportStart').value;
   const end = document.getElementById('reportEnd').value;
   if (!start || !end) { showToast('Generate laporan dulu!', 'error'); return; }
-  const recs = records.filter(r => r.date >= start && r.date <= end && r.status !== 'cancelled').sort((a, b) => a.timestamp - b.timestamp);
-  const rows = [['Tanggal', 'Waktu', 'Jenis', 'Detail', 'Nominal', 'Metode']];
+  const recs = records.filter(r => r.date >= start && r.date <= end && r.status !== 'cancelled').sort((a,b) => a.timestamp - b.timestamp);
+  const rows = [['Tanggal','Waktu','Jenis','Detail','Nominal','Metode']];
   recs.forEach(r => {
-    if (r.type === 'rental') rows.push([r.date, r.time, 'Sewa', r.unitNumber + ' ' + r.marketing + ' ' + (DUR_LABELS[r.duration] || ''), r.totalPayment, 'C:' + r.cashAmount + '/T:' + r.transferAmount + '/Q:' + r.qrAmount]);
-    else if (r.type === 'income') rows.push([r.date, r.time, 'Pemasukan', r.source, r.amount, r.method]);
-    else rows.push([r.date, r.time, 'Pengeluaran', r.category + ': ' + r.recipient, r.amount, r.method]);
+    if (r.type === 'rental') rows.push([r.date,r.time,'Sewa',r.unitNumber+' '+r.marketing+' '+(DUR_LABELS[r.duration]||''),r.totalPayment,'C:'+r.cashAmount+'/T:'+r.transferAmount+'/Q:'+r.qrAmount]);
+    else if (r.type === 'income') rows.push([r.date,r.time,'Pemasukan',r.source,r.amount,r.method]);
+    else rows.push([r.date,r.time,'Pengeluaran',r.category+': '+r.recipient,r.amount,r.method]);
   });
   downloadCSV(rows, 'laporan_' + start + '_' + end + '.csv');
   showToast('Export laporan berhasil!', 'success');
 }
 
-// === INIT ===
+// ============================================================
+// INIT
+// ============================================================
 function init() {
   loadRecordsFromLocalStorage();
   loadUnitListFromLocalStorage();
   rebuildAllUnitsList();
-  
+
   if (firebaseInitialized && db) {
     try {
-      db.ref('records').on('value', syncRecordsFromFirebase);
-      db.ref('units').on('value', syncUnitsFromFirebase);
-    } catch (e) {
+      // Real-time listeners — read semua perubahan dari Firebase
+      db.ref('records').on('value', onFirebaseRecordsChange);
+      db.ref('units').on('value', onFirebaseUnitsChange);
+
+      // Monitor status koneksi Firebase secara real-time
+      db.ref('.info/connected').on('value', function(snap) {
+        const el = document.getElementById('connectionStatus');
+        if (snap.val() === true) {
+          el.className = 'connection-status online';
+          el.innerHTML = '✓ Online';
+        } else {
+          el.className = 'connection-status offline';
+          el.innerHTML = '✕ Offline';
+        }
+      });
+    } catch(e) {
       console.error("Firebase listener error:", e);
     }
   }
-  
+
   updateClock();
   setInterval(updateClock, 1000);
   setInterval(updateUIAfterDataChange, 60000);
-  
-  window.addEventListener('online', function () {
-    document.getElementById('connectionStatus').className = 'connection-status online';
-    document.getElementById('connectionStatus').innerHTML = '✓ Online';
-  });
-  
-  window.addEventListener('offline', function () {
-    document.getElementById('connectionStatus').className = 'connection-status offline';
-    document.getElementById('connectionStatus').innerHTML = '✕ Offline';
-  });
-  
+
+  window.addEventListener('online',  () => { document.getElementById('connectionStatus').className = 'connection-status online';  document.getElementById('connectionStatus').innerHTML = '✓ Online'; });
+  window.addEventListener('offline', () => { document.getElementById('connectionStatus').className = 'connection-status offline'; document.getElementById('connectionStatus').innerHTML = '✕ Offline'; });
+
   autoSetPriceType();
-  autoSetCheckIn();
+  document.getElementById('checkIn').value = nowTime();
   document.getElementById('filterDate').value = getBusinessDate();
   document.getElementById('reportStart').value = getBusinessDate().slice(0, 8) + '01';
   document.getElementById('reportEnd').value = getBusinessDate();
-  
-  setTimeout(function () {
-    document.getElementById('connectionStatus').className = 'connection-status online';
-    document.getElementById('connectionStatus').innerHTML = '✓ Online';
-    updateDashboard();
-    renderUnitGrid();
-    renderRecentTransactions();
-    applyFilters();
-  }, 2000);
+
+  // Render dari localStorage dulu, sebelum Firebase data tiba
+  updateDashboard();
+  renderUnitGrid();
+  renderRecentTransactions();
+  applyFilters();
 }
 
-// Start the app
 document.addEventListener('DOMContentLoaded', init);
 </script>
+
 </body>
 </html>
