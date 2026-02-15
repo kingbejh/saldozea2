@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="app-name" content="SaldoZea">
-<meta name="version" content="3.3">
+<meta name="version" content="3.4">
 <title>SaldoZea - Apartemen Rental Management System</title>
 <style>
 :root {
@@ -251,7 +251,7 @@ body { background: white; color: black; }
       <div class="logo-icon">SZ</div>
       <div class="logo-text">
         <div class="logo-title">SaldoZea Rental</div>
-        <div class="logo-subtitle">APARTMENT SYSTEM v3.3</div>
+        <div class="logo-subtitle">APARTMENT SYSTEM v3.4</div>
       </div>
     </div>
     <div class="header-info">
@@ -840,14 +840,23 @@ let records = [];
 // DATE HELPERS — HARI BISNIS RESET JAM 08:00
 // ============================================================
 function getBusinessDate() {
+  // FIX v3.4: Gunakan komponen LOCAL date, bukan toISOString() yang UTC!
+  // Bug lama: di WIB (UTC+7), jam 00:00-06:59 local → UTC masih kemarin
+  // Efeknya: setDate(-1) + toISOString() = mundur 2 hari, bukan 1 hari
+  // Akibat: tiap tengah malam dashboard loncat ke data 2 hari lalu!
   const now = new Date();
   if (now.getHours() < 8) now.setDate(now.getDate() - 1);
-  return now.toISOString().split('T')[0];
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + d;
 }
 function getBusinessMonth() {
   const now = new Date();
   if (now.getHours() < 8) now.setDate(now.getDate() - 1);
-  return now.toISOString().slice(0, 7);
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  return y + '-' + m;
 }
 
 // ============================================================
