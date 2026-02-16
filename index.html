@@ -941,8 +941,9 @@ font-size:0.85rem; font-weight:700; color:#c084fc;
   <div id="history" class="tab-content">
     <div class="filter-section">
       <div class="form-group">
-        <label class="form-label">Tanggal</label>
-        <input type="date" class="form-input" id="filterDate">
+        <label class="form-label">Tanggal Bisnis</label>
+        <input type="date" class="form-input" id="filterDate" onchange="applyFilters()">
+        <div class="form-hint" id="filterDateHint">Menampilkan data 08:00 s/d 07:59 hari berikutnya</div>
       </div>
       <div class="form-group">
         <label class="form-label">Jenis</label>
@@ -989,12 +990,14 @@ font-size:0.85rem; font-weight:700; color:#c084fc;
       <div class="card-header"><div class="card-title"><div class="card-title-icon primary">📊</div>Generate Laporan</div></div>
       <div class="form-grid">
         <div class="form-group">
-          <label class="form-label">Dari Tanggal</label>
+          <label class="form-label">Dari Tanggal Bisnis</label>
           <input type="date" class="form-input" id="reportStart">
+          <div class="form-hint">mulai 08:00 tanggal ini</div>
         </div>
         <div class="form-group">
-          <label class="form-label">Sampai Tanggal</label>
+          <label class="form-label">Sampai Tanggal Bisnis</label>
           <input type="date" class="form-input" id="reportEnd">
+          <div class="form-hint">sampai 07:59 hari berikutnya</div>
         </div>
         <div class="form-group">
           <label class="form-label">&nbsp;</label>
