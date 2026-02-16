@@ -7,7 +7,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="app-name" content="SaldoZea">
-<meta name="version" content="3.4">
+<meta name="version" content="3.5">
+<!-- PWA manifest inline -->
+<link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22SaldoZea%20Rental%22%2C%22short_name%22%3A%22SaldoZea%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f1117%22%2C%22theme_color%22%3A%22%236366f1%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Crect%20width%3D%27100%27%20height%3D%27100%27%20rx%3D%2220%27%20fill%3D%27%236366f1%27%2F%3E%3Ctext%20x%3D%2750%27%20y%3D%2770%27%20text-anchor%3D%27middle%27%20font-size%3D%2750%27%20fill%3D%27white%27%20font-weight%3D%27bold%27%3ESZ%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22any%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+<meta name="theme-color" content="#6366f1">
 <title>SaldoZea - Apartemen Rental Management System</title>
 <style>
 :root {
@@ -229,11 +232,44 @@ td { font-size: 0.8rem; }
 body { background: white; color: black; }
 .stat-value { -webkit-text-fill-color: black !important; }
 }
+/* Notification toggle FAB */
+.notif-toggle { position: fixed; bottom: 28px; left: 24px; z-index: 9998; width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; transition: var(--transition); box-shadow: var(--shadow-lg); touch-action: manipulation; }
+.notif-toggle.on  { background: linear-gradient(135deg,#10b981,#059669); box-shadow: 0 4px 20px rgba(16,185,129,0.55); animation: notifPulse 2.5s infinite; }
+.notif-toggle.off { background: var(--bg-input); border: 2px solid var(--border-light); filter: grayscale(1) opacity(0.6); }
+@keyframes notifPulse { 0%,100%{box-shadow:0 4px 20px rgba(16,185,129,0.5);}50%{box-shadow:0 4px 32px rgba(16,185,129,0.85);} }
+/* Checkout alarm overlay */
+.alarm-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(239,68,68,0.12); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); z-index: 8888; display: none; align-items: center; justify-content: center; padding: 1rem; }
+.alarm-overlay.active { display: flex; animation: alarmFlash 0.6s ease infinite alternate; }
+@keyframes alarmFlash { from{background:rgba(239,68,68,0.08);}to{background:rgba(239,68,68,0.22);} }
+.alarm-card { background: var(--bg-card); border: 3px solid var(--accent-danger); border-radius: var(--radius-xl); padding: 2rem; text-align: center; max-width: 420px; width: 100%; box-shadow: 0 0 70px rgba(239,68,68,0.45); }
+.alarm-icon { font-size: 4rem; margin-bottom: 0.75rem; animation: alarmShake 0.4s infinite; }
+@keyframes alarmShake { 0%,100%{transform:rotate(-8deg);}50%{transform:rotate(8deg);} }
+.alarm-title { font-size: 1.6rem; font-weight: 800; color: var(--accent-danger); margin-bottom: 0.5rem; }
+.alarm-units { font-size: 1rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.7; }
+/* Warning toast special */
+.toast.alarm { background: linear-gradient(135deg,rgba(239,68,68,0.97),rgba(185,28,28,0.97)); font-size:1rem; }
+@media (max-width: 768px) { .notif-toggle { bottom: 88px; left: 16px; width: 50px; height: 50px; font-size: 1.3rem; } }
 </style>
 </head>
 <body>
 <div class="connection-status connecting" id="connectionStatus">⏳ Menghubungkan...</div>
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- Alarm overlay for checkout -->
+
+<div class="alarm-overlay" id="alarmOverlay">
+  <div class="alarm-card">
+    <div class="alarm-icon">🔔</div>
+    <div class="alarm-title">WAKTU CHECKOUT!</div>
+    <div class="alarm-units" id="alarmUnitList">Unit sedang checkout...</div>
+    <button class="btn btn-danger" onclick="dismissAlarm()" style="width:100%;font-size:1rem;">✓ Sudah Ditangani</button>
+  </div>
+</div>
+
+<!-- Notification toggle FAB -->
+
+<button class="notif-toggle on" id="notifToggle" onclick="toggleNotification()" title="Toggle Notifikasi Suara">🔔</button>
+
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-header">
@@ -251,7 +287,7 @@ body { background: white; color: black; }
       <div class="logo-icon">SZ</div>
       <div class="logo-text">
         <div class="logo-title">SaldoZea Rental</div>
-        <div class="logo-subtitle">APARTMENT SYSTEM v3.4</div>
+        <div class="logo-subtitle">APARTMENT SYSTEM v3.5</div>
       </div>
     </div>
     <div class="header-info">
@@ -1638,6 +1674,187 @@ function exportReport() {
 }
 
 // ============================================================
+// NOTIFICATION & SOUND SYSTEM v3.5
+// ============================================================
+
+let notificationEnabled = localStorage.getItem('notif_enabled') !== 'false'; // default ON
+let notifiedCheckouts = {}; // { 'UNITNUM_COTIME_DATE_level': true }
+let alarmDismissed = {}; // { 'UNITNUM_COTIME_DATE': true }
+
+// --- Toggle ON/OFF ---
+function toggleNotification() {
+  notificationEnabled = !notificationEnabled;
+  localStorage.setItem('notif_enabled', notificationEnabled ? 'true' : 'false');
+  updateNotifToggleUI();
+  showToast(notificationEnabled ? '🔔 Notifikasi suara aktif' : '🔕 Notifikasi suara dimatikan', notificationEnabled ? 'success' : 'warning');
+}
+
+function updateNotifToggleUI() {
+  const btn = document.getElementById('notifToggle');
+  if (!btn) return;
+  if (notificationEnabled) {
+    btn.className = 'notif-toggle on';
+    btn.innerHTML = '🔔';
+    btn.title = 'Notifikasi Aktif — Klik untuk matikan';
+  } else {
+    btn.className = 'notif-toggle off';
+    btn.innerHTML = '🔕';
+    btn.title = 'Notifikasi Mati — Klik untuk aktifkan';
+  }
+}
+
+// --- Web Audio API: buat bunyi tanpa file audio ---
+function playSound(type) {
+  if (!notificationEnabled) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function beep(freq, startTime, duration, volume, wave) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = wave || 'sine';
+      osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(volume, startTime + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      osc.start(startTime);
+      osc.stop(startTime + duration + 0.05);
+    }
+
+    const t = ctx.currentTime;
+
+    if (type === 'warn30') {
+      // 1 ping lembut — 30 menit lagi
+      beep(660, t, 0.5, 0.35, 'sine');
+
+    } else if (type === 'warn10') {
+      // 2 ping lebih keras — 10 menit lagi
+      beep(880, t,       0.3, 0.5, 'sine');
+      beep(880, t + 0.45, 0.3, 0.5, 'sine');
+
+    } else if (type === 'checkout') {
+      // Alarm lonceng 5 bunyi tegas — waktunya checkout!
+      beep(1046, t,        0.25, 0.7, 'square');
+      beep(784,  t + 0.3,  0.25, 0.7, 'square');
+      beep(1046, t + 0.6,  0.25, 0.7, 'square');
+      beep(784,  t + 0.9,  0.25, 0.7, 'square');
+      beep(1046, t + 1.2,  0.4,  0.9, 'square');
+    }
+
+    // Tutup AudioContext setelah selesai
+    setTimeout(() => { try { ctx.close(); } catch(e){} }, 3000);
+  } catch(e) {
+    console.warn('AudioContext error:', e);
+  }
+}
+
+// --- Push Notification (untuk PWA di Android home screen) ---
+function sendPushNotification(title, body) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    new Notification(title, {
+      body: body,
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔔</text></svg>',
+      badge: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🏢</text></svg>',
+      tag: 'checkout-alert',
+      renotify: true,
+      requireInteraction: false,
+      silent: false
+    });
+  } catch(e) { console.warn('Push notification error:', e); }
+}
+
+// --- Request permission untuk notifikasi ---
+function requestNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    Notification.requestPermission().then(function(perm) {
+      if (perm === 'granted') showToast('✓ Izin notifikasi diberikan!', 'success');
+    });
+  }
+}
+
+// --- Tampilkan/dismiss alarm overlay ---
+function showAlarmOverlay(units) {
+  const overlay = document.getElementById('alarmOverlay');
+  const list = document.getElementById('alarmUnitList');
+  list.innerHTML = units.map(u =>
+    '<strong style="color:var(--accent-danger)">' + u.number + '</strong> (' + u.type + ') — CO: <strong>' + u.coTime + '</strong>'
+  ).join('<br>');
+  overlay.classList.add('active');
+}
+
+function dismissAlarm() {
+  const overlay = document.getElementById('alarmOverlay');
+  overlay.classList.remove('active');
+  // Tandai semua unit yang sedang ditampilkan sudah di-dismiss
+  const today = getBusinessDate();
+  ALL_UNITS.forEach(u => {
+    const { status, rental } = getUnitStatus(u.number);
+    if (status === 'checkout-soon' || (rental && timeMin(rental.checkOut) <= timeMin(nowTime()))) {
+      if (rental) alarmDismissed[u.number + '_' + rental.checkOut + '_' + today] = true;
+    }
+  });
+}
+
+// --- Main checker: dijalankan setiap 30 detik ---
+function checkCheckoutNotifications() {
+  if (!notificationEnabled) return;
+
+  const today = getBusinessDate();
+  const nowM = timeMin(nowTime());
+  const unitsToAlarm = [];
+
+  ALL_UNITS.forEach(u => {
+    const { status, rental, remaining } = getUnitStatus(u.number);
+    if (!rental) return;
+
+    const keyBase = u.number + '_' + rental.checkOut + '_' + today;
+
+    // 30 menit warning — satu kali saja
+    if (remaining <= 30 && remaining > 10 && !notifiedCheckouts[keyBase + '_warn30']) {
+      notifiedCheckouts[keyBase + '_warn30'] = true;
+      playSound('warn30');
+      showToast('⏰ ' + u.number + ' checkout dalam ' + remaining + ' menit!', 'warning');
+      sendPushNotification('⏰ Segera Checkout', u.number + ' (' + u.type + ') tersisa ' + remaining + ' menit');
+    }
+
+    // 10 menit warning — satu kali saja
+    if (remaining <= 10 && remaining > 0 && !notifiedCheckouts[keyBase + '_warn10']) {
+      notifiedCheckouts[keyBase + '_warn10'] = true;
+      playSound('warn10');
+      showToast('⚠️ ' + u.number + ' CHECKOUT ' + remaining + ' MENIT LAGI!', 'error');
+      sendPushNotification('⚠️ ' + remaining + ' Menit Lagi!', u.number + ' (' + u.type + ') segera checkout!');
+    }
+
+    // Tepat checkout / sudah lewat — alarm besar
+    if (remaining <= 0 && !notifiedCheckouts[keyBase + '_checkout'] && !alarmDismissed[keyBase]) {
+      notifiedCheckouts[keyBase + '_checkout'] = true;
+      unitsToAlarm.push({ number: u.number, type: u.type, coTime: rental.checkOut });
+    }
+  });
+
+  // Bunyikan alarm dan tampilkan overlay jika ada yang checkout
+  if (unitsToAlarm.length > 0) {
+    playSound('checkout');
+    showAlarmOverlay(unitsToAlarm);
+    sendPushNotification(
+      '🔔 WAKTU CHECKOUT!',
+      unitsToAlarm.map(u => u.number + ' — CO: ' + u.coTime).join(', ')
+    );
+  }
+
+  // Reset notifiedCheckouts di awal hari bisnis baru (jam 08:00)
+  const h = new Date().getHours();
+  if (h === 8 && new Date().getMinutes() < 1) {
+    notifiedCheckouts = {};
+    alarmDismissed = {};
+  }
+}
+
+// ============================================================
 // INIT
 // ============================================================
 function init() {
@@ -1670,6 +1887,11 @@ function init() {
   updateClock();
   setInterval(updateClock, 1000);
   setInterval(updateUIAfterDataChange, 60000);
+  setInterval(checkCheckoutNotifications, 30000); // cek checkout setiap 30 detik
+
+  // Init notifikasi
+  updateNotifToggleUI();
+  requestNotificationPermission();
 
   window.addEventListener('online',  () => { document.getElementById('connectionStatus').className = 'connection-status online';  document.getElementById('connectionStatus').innerHTML = '✓ Online'; });
   window.addEventListener('offline', () => { document.getElementById('connectionStatus').className = 'connection-status offline'; document.getElementById('connectionStatus').innerHTML = '✕ Offline'; });
