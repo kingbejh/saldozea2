@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="app-name" content="SaldoZea">
-<meta name="version" content="3.6">
+<meta name="version" content="3.7">
 <!-- PWA manifest inline -->
 <link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22SaldoZea%20Rental%22%2C%22short_name%22%3A%22SaldoZea%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f1117%22%2C%22theme_color%22%3A%22%236366f1%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Crect%20width%3D%27100%27%20height%3D%27100%27%20rx%3D%2220%27%20fill%3D%27%236366f1%27%2F%3E%3Ctext%20x%3D%2750%27%20y%3D%2770%27%20text-anchor%3D%27middle%27%20font-size%3D%2750%27%20fill%3D%27white%27%20font-weight%3D%27bold%27%3ESZ%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22any%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
 <meta name="theme-color" content="#6366f1">
@@ -249,6 +249,25 @@ body { background: white; color: black; }
 /* Warning toast special */
 .toast.alarm { background: linear-gradient(135deg,rgba(239,68,68,0.97),rgba(185,28,28,0.97)); font-size:1rem; }
 @media (max-width: 768px) { .notif-toggle { bottom: 88px; left: 16px; width: 50px; height: 50px; font-size: 1.3rem; } }
+/* Report Bug FAB */
+.report-bug-btn { position:fixed; bottom:28px; right:24px; z-index:9997; display:flex; align-items:center; gap:0.5rem; padding:0 1.2rem 0 0.9rem; height:48px; background:linear-gradient(135deg,#ef4444,#dc2626); border:none; border-radius:24px; color:white; font-size:0.82rem; font-weight:700; cursor:pointer; box-shadow:0 4px 16px rgba(239,68,68,0.45); transition:var(--transition); font-family:inherit; letter-spacing:0.3px; touch-action:manipulation; white-space:nowrap; }
+.report-bug-btn:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(239,68,68,0.6); }
+.report-bug-btn:active { transform:translateY(0); }
+.report-bug-btn .bug-icon { font-size:1.1rem; }
+/* Bug modal */
+.bug-modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:99990;display:none;align-items:center;justify-content:center;padding:1rem; }
+.bug-modal-overlay.active { display:flex;animation:fadeSlideIn 0.3s ease; }
+.bug-modal { background:var(--bg-card);border:2px solid var(--accent-danger);border-radius:var(--radius-xl);padding:2rem;max-width:460px;width:100%;box-shadow:0 0 60px rgba(239,68,68,0.3);position:relative;overflow:hidden; }
+.bug-modal::before { content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--gradient-danger); }
+.bug-modal-title { font-size:1.2rem;font-weight:800;color:var(--accent-danger);margin-bottom:0.25rem;display:flex;align-items:center;gap:0.5rem; }
+.bug-modal-sub { font-size:0.8rem;color:var(--text-muted);margin-bottom:1.5rem; }
+.bug-tab-display { background:var(--bg-input);border-radius:var(--radius-md);padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:var(--text-secondary); }
+.bug-tab-display strong { color:var(--text-primary); }
+.bug-notes { width:100%;padding:0.875rem 1rem;background:var(--bg-input);border:2px solid var(--border-color);border-radius:var(--radius-md);color:var(--text-primary);font-size:0.9rem;font-family:inherit;resize:vertical;min-height:90px;transition:var(--transition); }
+.bug-notes:focus { outline:none;border-color:var(--accent-danger);background:var(--bg-input-focus); }
+.bug-notes::placeholder { color:var(--text-dim); }
+.bug-modal-footer { display:flex;gap:0.75rem;margin-top:1rem; }
+@media(max-width:768px){ .report-bug-btn { bottom:88px; right:16px; height:44px; font-size:0.78rem; padding:0 1rem 0 0.8rem; } }
 
 /* ============================================================
 LOGIN SCREEN v3.6
@@ -286,6 +305,27 @@ body.crew-mode .crew-hide { display:none !important; }
 body.crew-mode .quick-action-btn.success,
 body.crew-mode .quick-action-btn.danger { display:none !important; }
 body.crew-mode [data-crew-hide] { display:none !important; }
+
+/* ============================================================
+PRESENCE / WHO’S ONLINE SYSTEM
+============================================================ */
+/* Online panel — floating pill list */
+.online-panel { position:fixed; top:140px; right:20px; z-index:990; display:flex; flex-direction:column; gap:6px; pointer-events:none; }
+.online-pill { display:flex; align-items:center; gap:8px; padding:6px 12px; border-radius:20px; font-size:0.72rem; font-weight:700; border:1px solid; animation:pillIn 0.4s cubic-bezier(0.4,0,0.2,1); pointer-events:auto; white-space:nowrap; box-shadow:var(–shadow-md); }
+@keyframes pillIn { from{opacity:0;transform:translateX(60px);}to{opacity:1;transform:translateX(0);} }
+@keyframes pillOut { from{opacity:1;transform:translateX(0);}to{opacity:0;transform:translateX(60px);} }
+.online-pill.supreme { background:rgba(168,85,247,0.2);color:#c084fc;border-color:rgba(192,132,252,0.5); }
+.online-pill.owner   { background:rgba(245,158,11,0.2);color:#fbbf24;border-color:rgba(251,191,36,0.5); }
+.online-pill.admin   { background:rgba(6,182,212,0.2);color:#22d3ee;border-color:rgba(34,211,238,0.5); }
+.online-pill.crew    { background:rgba(16,185,129,0.2);color:#34d399;border-color:rgba(52,211,153,0.5); }
+.online-dot { width:8px;height:8px;border-radius:50%;background:currentColor;animation:dotPulse 1.8s ease infinite;flex-shrink:0; }
+@keyframes dotPulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.7);} }
+.online-pill.supreme .online-dot, .online-pill.owner .online-dot { animation:dotPulse 1s ease infinite; }
+
+/* Toast jenis special untuk boss online */
+.toast.boss { background:linear-gradient(135deg,rgba(168,85,247,0.97),rgba(139,92,246,0.97)); font-size:1rem; }
+
+@media(max-width:768px){ .online-panel { top:auto; bottom:150px; right:10px; } .online-pill { font-size:0.68rem; padding:5px 10px; } }
 </style>
 
 </head>
@@ -298,7 +338,7 @@ body.crew-mode [data-crew-hide] { display:none !important; }
     <div class="login-logo">
       <div class="login-logo-icon">SZ</div>
       <div class="login-logo-title">SaldoZea Rental</div>
-      <div class="login-logo-sub">Apartment System v3.6</div>
+      <div class="login-logo-sub">Apartment System v3.7</div>
     </div>
     <div class="login-form">
       <div class="login-input-wrap">
@@ -334,6 +374,31 @@ body.crew-mode [data-crew-hide] { display:none !important; }
   </div>
 </div>
 
+<!-- Report Bug FAB -->
+
+<button class="report-bug-btn" id="reportBugBtn" onclick="openBugModal()" title="Laporkan bug di tab ini">
+  <span class="bug-icon">🐛</span> Report Bug
+</button>
+
+<!-- Bug Report Modal -->
+
+<div class="bug-modal-overlay" id="bugModalOverlay" onclick="if(event.target===this)closeBugModal()">
+  <div class="bug-modal">
+    <div class="bug-modal-title">🐛 Laporkan Bug</div>
+    <div class="bug-modal-sub">Laporan akan dikirim langsung ke WhatsApp Ketua</div>
+    <div class="bug-tab-display">Tab bermasalah: <strong id="bugTabName">—</strong></div>
+    <textarea class="bug-notes" id="bugNotes" placeholder="Opsional: jelaskan bug-nya secara singkat..."></textarea>
+    <div class="bug-modal-footer">
+      <button class="btn btn-danger" style="flex:1" onclick="sendBugReport()">📲 Kirim via WhatsApp</button>
+      <button class="btn btn-secondary" onclick="closeBugModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Who's Online Panel -->
+
+<div class="online-panel" id="onlinePanel"></div>
+
 <!-- Notification toggle FAB -->
 
 <button class="notif-toggle on" id="notifToggle" onclick="toggleNotification()" title="Toggle Notifikasi Suara">🔔</button>
@@ -355,7 +420,7 @@ body.crew-mode [data-crew-hide] { display:none !important; }
       <div class="logo-icon">SZ</div>
       <div class="logo-text">
         <div class="logo-title">SaldoZea Rental</div>
-        <div class="logo-subtitle">APARTMENT SYSTEM v3.6</div>
+        <div class="logo-subtitle">APARTMENT SYSTEM v3.7</div>
       </div>
     </div>
     <div class="header-info">
@@ -1156,6 +1221,7 @@ function switchTab(id) {
   if (tab) tab.classList.add('active');
   const btn = document.querySelector('.nav-btn[data-tab="' + id + '"]');
   if (btn) btn.classList.add('active');
+  currentActiveTab = id; // track for bug reports
   if (id === 'dashboard') updateDashboard();
   if (id === 'units') renderUnitGrid();
   if (id === 'history') applyFilters();
@@ -1944,6 +2010,222 @@ function checkCheckoutNotifications() {
 }
 
 // ============================================================
+// PRESENCE SYSTEM — Who's Online (Firebase-powered)
+// ============================================================
+
+let presenceRef   = null;   // ref ke /presence/USERNAME milik user ini
+let onlineUsers   = {};     // { USERNAME: { username, role, label } }
+let presenceReady = false;
+
+// Emoji per role untuk panel dan notifikasi
+const ROLE_ICONS = { supreme:'👑', owner:'🏠', admin:'⚙️', crew:'👁' };
+
+// ── Register kehadiran user ke Firebase ──────────────────────
+function registerPresence(user) {
+  if (!firebaseInitialized || !db) return;
+  try {
+    presenceRef = db.ref('presence/' + user.username);
+    const presenceData = {
+      username:  user.username,
+      role:      user.role,
+      label:     ROLE_ICONS[user.role] + ' ' + user.role.toUpperCase(),
+      joinedAt:  Date.now()
+    };
+
+    // Tulis data kehadiran
+    presenceRef.set(presenceData);
+
+    // Otomatis hapus saat koneksi putus / tab ditutup
+    presenceRef.onDisconnect().remove();
+
+    // Mulai listen perubahan presence seluruh user
+    listenPresence();
+  } catch(e) { console.error('Presence register error:', e); }
+}
+
+// ── Hapus kehadiran saat logout manual ───────────────────────
+function removePresence() {
+  if (presenceRef) {
+    try {
+      presenceRef.onDisconnect().cancel();
+      presenceRef.remove();
+      presenceRef = null;
+    } catch(e) {}
+  }
+  onlineUsers = {};
+  renderOnlinePanel();
+}
+
+// ── Listen presence seluruh user di Firebase ─────────────────
+function listenPresence() {
+  if (!firebaseInitialized || !db) return;
+  // Grace period: 2.5 detik pertama setelah login, panel diisi tapi
+  // toast & suara tidak dibunyikan (menghindari spam saat baru join)
+  const presenceJoinTime = Date.now();
+  const GRACE_MS = 2500;
+
+  db.ref('presence').on('child_added', function(snap) {
+    const data = snap.val();
+    if (!data || !currentUser) return;
+    const username = snap.key;
+
+    // Jangan tampilkan diri sendiri
+    if (username === currentUser.username) return;
+
+    onlineUsers[username] = data;
+    renderOnlinePanel();
+
+    // Dalam grace period → hanya render panel, tidak bunyi/toast
+    if (Date.now() - presenceJoinTime < GRACE_MS) return;
+
+    // Tampilkan notifikasi toast
+    const icon  = ROLE_ICONS[data.role] || '👤';
+    const msg   = icon + ' ' + data.role.toUpperCase() + ' (' + username + ') sedang online';
+
+    // Boss (SUPREME/OWNER) masuk → bunyi khusus + toast tegas untuk ADMIN & CREW
+    if (data.role === 'supreme' || data.role === 'owner') {
+      if (currentUser.role === 'admin' || currentUser.role === 'crew') {
+        playBossOnlineSound();
+        showBossToast(icon, data.role, username);
+      } else {
+        showToast(msg, 'info');
+      }
+    } else {
+      showToast(msg, 'info');
+    }
+  });
+
+  db.ref('presence').on('child_removed', function(snap) {
+    const username = snap.key;
+    if (!currentUser || username === currentUser.username) return;
+    const was = onlineUsers[username];
+    delete onlineUsers[username];
+    renderOnlinePanel();
+    if (was) {
+      const icon = ROLE_ICONS[was.role] || '👤';
+      showToast(icon + ' ' + was.role.toUpperCase() + ' (' + username + ') offline', 'warning');
+    }
+  });
+
+  presenceReady = true;
+}
+
+// ── Render panel floating pills ──────────────────────────────
+function renderOnlinePanel() {
+  const panel = document.getElementById('onlinePanel');
+  if (!panel) return;
+  const users = Object.values(onlineUsers);
+  if (!users.length) { panel.innerHTML = ''; return; }
+
+  // Urutkan: supreme > owner > admin > crew
+  const order = { supreme:0, owner:1, admin:2, crew:3 };
+  users.sort((a, b) => (order[a.role] || 9) - (order[b.role] || 9));
+
+  panel.innerHTML = users.map(u => {
+    const icon = ROLE_ICONS[u.role] || '👤';
+    return '<div class="online-pill ' + u.role + '" title="' + u.username + ' sedang online">'
+         + '<span class="online-dot"></span>'
+         + icon + ' ' + u.role.toUpperCase() + ' <span style="opacity:0.75;font-weight:600">(' + u.username + ')</span>'
+         + '</div>';
+  }).join('');
+}
+
+// ── Suara khusus saat boss masuk ─────────────────────────────
+function playBossOnlineSound() {
+  if (!notificationEnabled) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const t   = ctx.currentTime;
+    function beep(freq, start, dur, vol) {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(vol, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+      osc.start(start); osc.stop(start + dur + 0.05);
+    }
+    // 3 nada naik — sinyal penting
+    beep(523, t,        0.18, 0.45);
+    beep(659, t + 0.22, 0.18, 0.55);
+    beep(784, t + 0.44, 0.35, 0.70);
+    setTimeout(() => { try { ctx.close(); } catch(e){} }, 2000);
+  } catch(e) { console.warn('Boss sound error:', e); }
+}
+
+// ── Toast khusus boss masuk (lebih mencolok) ──────────────────
+function showBossToast(icon, role, username) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast boss';
+  t.innerHTML = '<span style="font-size:1.3rem">' + icon + '</span>'
+              + '<div><div style="font-size:0.75rem;opacity:0.8;text-transform:uppercase;letter-spacing:1px">'
+              + role + ' sedang online</div>'
+              + '<div style="font-size:1rem;font-weight:800">' + username + ' memantau sekarang!</div></div>';
+  t.onclick = () => t.remove();
+  c.appendChild(t);
+  setTimeout(() => { if (t.parentNode) t.remove(); }, 6000);
+}
+
+// ============================================================
+// REPORT BUG SYSTEM v3.6
+// ============================================================
+
+const BUG_WA_NUMBER = '6289512443677'; // 089512443677 → format internasional
+
+const TAB_NAMES = {
+  'dashboard':   'Dashboard',
+  'rental':      'Input Sewa',
+  'transaction': 'Transaksi',
+  'units':       'Manajemen Unit',
+  'history':     'Riwayat',
+  'report':      'Laporan'
+};
+
+let currentActiveTab = 'dashboard';
+
+function openBugModal() {
+  document.getElementById('bugTabName').textContent = TAB_NAMES[currentActiveTab] || currentActiveTab;
+  document.getElementById('bugNotes').value = '';
+  document.getElementById('bugModalOverlay').classList.add('active');
+  setTimeout(() => document.getElementById('bugNotes').focus(), 300);
+}
+
+function closeBugModal() {
+  document.getElementById('bugModalOverlay').classList.remove('active');
+}
+
+function sendBugReport() {
+  const tabLabel = TAB_NAMES[currentActiveTab] || currentActiveTab;
+  const notes    = document.getElementById('bugNotes').value.trim();
+  const now      = new Date();
+  const waktu    = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
+                   + ', ' + now.toTimeString().slice(0, 8) + ' WIB';
+  const reporter = currentUser ? currentUser.username + ' (' + currentUser.role.toUpperCase() + ')' : 'Unknown';
+
+  let msg = 'Maaf ketua, terjadi bug di tab navigasi *' + tabLabel + '*.'
+          + '\n\n📋 *Detail Laporan:*'
+          + '\n• Tab: ' + tabLabel
+          + '\n• Dilaporkan oleh: ' + reporter
+          + '\n• Waktu: ' + waktu;
+
+  if (notes) {
+    msg += '\n• Keterangan: ' + notes;
+  }
+
+  msg += '\n\n🔧 Mohon segera dicek ya ketua. Terima kasih!';
+
+  const encoded = encodeURIComponent(msg);
+  const url     = 'https://wa.me/' + BUG_WA_NUMBER + '?text=' + encoded;
+
+  closeBugModal();
+  window.open(url, '_blank');
+  showToast('Laporan bug dikirim ke WhatsApp ketua!', 'success');
+}
+
+// ============================================================
 // AUTH SYSTEM v3.6 — Role-based login
 // ============================================================
 
@@ -1981,6 +2263,8 @@ function doLogin() {
 
 function doLogout() {
   if (!confirm('Yakin mau keluar?')) return;
+  // Hapus presence dari Firebase
+  removePresence();
   sessionStorage.removeItem('sz_user');
   currentUser = null;
   // Reset UI
@@ -1990,6 +2274,7 @@ function doLogout() {
   document.getElementById('loginPassword').value = '';
   document.getElementById('crewBanner').classList.remove('show');
   document.getElementById('userBadge').textContent = '';
+  document.getElementById('onlinePanel').innerHTML = '';
   showToast('Berhasil keluar', 'info');
 }
 
@@ -1998,6 +2283,9 @@ function applySession() {
 
   // Hide login screen
   document.getElementById('loginScreen').classList.add('hidden');
+
+  // Register presence to Firebase
+  registerPresence(currentUser);
 
   // Set user badge in header
   const badge = document.getElementById('userBadge');
