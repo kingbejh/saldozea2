@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="app-name" content="SaldoZea">
-<meta name="version" content="3.5">
+<meta name="version" content="3.6">
 <!-- PWA manifest inline -->
 <link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22SaldoZea%20Rental%22%2C%22short_name%22%3A%22SaldoZea%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f1117%22%2C%22theme_color%22%3A%22%236366f1%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Crect%20width%3D%27100%27%20height%3D%27100%27%20rx%3D%2220%27%20fill%3D%27%236366f1%27%2F%3E%3Ctext%20x%3D%2750%27%20y%3D%2770%27%20text-anchor%3D%27middle%27%20font-size%3D%2750%27%20fill%3D%27white%27%20font-weight%3D%27bold%27%3ESZ%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22any%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
 <meta name="theme-color" content="#6366f1">
@@ -249,9 +249,77 @@ body { background: white; color: black; }
 /* Warning toast special */
 .toast.alarm { background: linear-gradient(135deg,rgba(239,68,68,0.97),rgba(185,28,28,0.97)); font-size:1rem; }
 @media (max-width: 768px) { .notif-toggle { bottom: 88px; left: 16px; width: 50px; height: 50px; font-size: 1.3rem; } }
+
+/* ============================================================
+LOGIN SCREEN v3.6
+============================================================ */
+.login-screen { position:fixed;inset:0;z-index:99999;background:var(–bg-primary);display:flex;align-items:center;justify-content:center;padding:1.5rem;background-image:radial-gradient(ellipse at 20% 50%,rgba(99,102,241,0.12) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(139,92,246,0.1) 0%,transparent 50%); }
+.login-screen.hidden { display:none; }
+.login-box { background:var(–bg-card);border:1px solid var(–border-color);border-radius:var(–radius-xl);padding:2.5rem 2rem;width:100%;max-width:400px;box-shadow:var(–shadow-lg),var(–shadow-glow);position:relative;overflow:hidden; }
+.login-box::before { content:’’;position:absolute;top:0;left:0;right:0;height:4px;background:var(–gradient-primary); }
+.login-logo { text-align:center;margin-bottom:2rem; }
+.login-logo-icon { width:72px;height:72px;border-radius:var(–radius-lg);background:var(–gradient-primary);display:inline-flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:white;box-shadow:0 8px 25px rgba(99,102,241,0.4);margin-bottom:1rem; }
+.login-logo-title { font-size:1.5rem;font-weight:800;color:var(–text-primary); }
+.login-logo-sub { font-size:0.75rem;color:var(–text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:0.25rem; }
+.login-form { display:flex;flex-direction:column;gap:1rem; }
+.login-input-wrap { position:relative; }
+.login-input-icon { position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-size:1rem;color:var(–text-muted);pointer-events:none; }
+.login-input { width:100%;padding:0.9rem 1rem 0.9rem 2.75rem;background:var(–bg-input);border:2px solid var(–border-color);border-radius:var(–radius-md);color:var(–text-primary);font-size:1rem;font-family:inherit;transition:var(–transition);letter-spacing:0.5px; }
+.login-input:focus { outline:none;border-color:var(–accent-1);background:var(–bg-input-focus);box-shadow:0 0 0 4px rgba(99,102,241,0.15); }
+.login-input::placeholder { color:var(–text-dim);letter-spacing:0; }
+.login-btn { width:100%;padding:1rem;background:var(–gradient-primary);border:none;border-radius:var(–radius-md);color:white;font-size:1rem;font-weight:700;cursor:pointer;transition:var(–transition);box-shadow:0 4px 15px rgba(99,102,241,0.4);font-family:inherit;letter-spacing:0.5px; }
+.login-btn:hover { transform:translateY(-2px);box-shadow:0 8px 25px rgba(99,102,241,0.5); }
+.login-btn:active { transform:translateY(0); }
+.login-error { background:rgba(239,68,68,0.15);border:1px solid var(–accent-danger);border-radius:var(–radius-md);padding:0.75rem 1rem;color:var(–accent-danger);font-size:0.85rem;font-weight:600;text-align:center;display:none; }
+.login-error.show { display:block;animation:fadeSlideIn 0.3s ease; }
+.login-footer { text-align:center;margin-top:1.5rem;font-size:0.7rem;color:var(–text-dim); }
+.role-badge { display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0.9rem;border-radius:var(–radius-md);font-size:0.75rem;font-weight:700;letter-spacing:0.5px;border:1.5px solid; }
+.role-badge.supreme { background:rgba(168,85,247,0.2);color:#c084fc;border-color:#c084fc; }
+.role-badge.owner   { background:rgba(245,158,11,0.2);color:var(–accent-warning);border-color:var(–accent-warning); }
+.role-badge.admin   { background:rgba(6,182,212,0.2);color:var(–accent-cyan);border-color:var(–accent-cyan); }
+.role-badge.crew    { background:rgba(16,185,129,0.2);color:var(–accent-success);border-color:var(–accent-success); }
+.logout-btn { padding:0.4rem 0.9rem;background:rgba(239,68,68,0.15);border:1.5px solid var(–accent-danger);border-radius:var(–radius-md);color:var(–accent-danger);font-size:0.75rem;font-weight:700;cursor:pointer;transition:var(–transition);font-family:inherit;touch-action:manipulation; }
+.logout-btn:hover { background:var(–accent-danger);color:white; }
+.crew-banner { background:linear-gradient(135deg,rgba(16,185,129,0.15),rgba(6,182,212,0.1));border-bottom:1px solid rgba(16,185,129,0.3);padding:0.5rem 1.5rem;text-align:center;font-size:0.8rem;font-weight:600;color:var(–accent-success);letter-spacing:0.5px;display:none; }
+.crew-banner.show { display:block; }
+body.crew-mode .crew-hide { display:none !important; }
+body.crew-mode .quick-action-btn.success,
+body.crew-mode .quick-action-btn.danger { display:none !important; }
+body.crew-mode [data-crew-hide] { display:none !important; }
 </style>
+
 </head>
 <body>
+<!-- ============================================================
+     LOGIN SCREEN v3.6
+     ============================================================ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">SZ</div>
+      <div class="login-logo-title">SaldoZea Rental</div>
+      <div class="login-logo-sub">Apartment System v3.6</div>
+    </div>
+    <div class="login-form">
+      <div class="login-input-wrap">
+        <span class="login-input-icon">👤</span>
+        <input type="text" class="login-input" id="loginUsername" placeholder="Username" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="login-input-wrap">
+        <span class="login-input-icon">🔒</span>
+        <input type="password" class="login-input" id="loginPassword" placeholder="Password" autocomplete="current-password">
+      </div>
+      <div class="login-error" id="loginError">Username atau password salah!</div>
+      <button class="login-btn" onclick="doLogin()">Masuk →</button>
+    </div>
+    <div class="login-footer">SaldoZea © 2026 — Zea Property GWP</div>
+  </div>
+</div>
+
+<!-- Crew view-only banner -->
+
+<div class="crew-banner" id="crewBanner">👁 MODE VIEW ONLY — Akun CREW tidak dapat melakukan input atau perubahan data</div>
+
 <div class="connection-status connecting" id="connectionStatus">⏳ Menghubungkan...</div>
 <div class="toast-container" id="toastContainer"></div>
 
@@ -287,7 +355,7 @@ body { background: white; color: black; }
       <div class="logo-icon">SZ</div>
       <div class="logo-text">
         <div class="logo-title">SaldoZea Rental</div>
-        <div class="logo-subtitle">APARTMENT SYSTEM v3.5</div>
+        <div class="logo-subtitle">APARTMENT SYSTEM v3.6</div>
       </div>
     </div>
     <div class="header-info">
@@ -303,6 +371,8 @@ body { background: white; color: black; }
         <div class="header-date" id="headerDate"></div>
         <div class="header-clock" id="headerClock"></div>
       </div>
+      <div id="userBadge" class="role-badge supreme" style="text-transform:uppercase"></div>
+      <button class="logout-btn" onclick="doLogout()">Keluar</button>
     </div>
   </div>
 </div>
@@ -333,7 +403,7 @@ body { background: white; color: black; }
     </div>
     <div class="quick-actions">
       <button class="quick-action-btn success" onclick="switchTab('rental')">+ Input Sewa Baru</button>
-      <button class="quick-action-btn" onclick="switchTab('transaction')">+ Tambah Pemasukan</button>
+      <button class="quick-action-btn crew-hide" onclick="switchTab('transaction')">+ Tambah Pemasukan</button>
       <button class="quick-action-btn danger" onclick="switchTab('transaction')">- Tambah Pengeluaran</button>
       <button class="quick-action-btn" onclick="exportDailyReport()">📥 Export Hari Ini</button>
     </div>
@@ -1013,6 +1083,8 @@ function removeUnit(number) {
 }
 
 function handleAddUnit() {
+  if (currentUser && currentUser.role === 'crew') { showToast('Akun CREW tidak bisa melakukan aksi ini', 'warning'); return false; }
+
   const num = document.getElementById('newUnitNumber').value.trim();
   const type = document.getElementById('newUnitType').value;
   if (addUnit(num, type)) {
@@ -1023,6 +1095,8 @@ function handleAddUnit() {
 }
 
 function handleRemoveUnit() {
+  if (currentUser && currentUser.role === 'crew') { showToast('Akun CREW tidak bisa melakukan aksi ini', 'warning'); return false; }
+
   const num = document.getElementById('removeUnitNumber').value.trim();
   if (removeUnit(num)) {
     document.getElementById('removeUnitNumber').value = '';
@@ -1071,6 +1145,11 @@ function updateUIAfterDataChange() {
 }
 
 function switchTab(id) {
+  // Block CREW from edit tabs
+  if (currentUser && currentUser.role === 'crew' && (id === 'rental' || id === 'transaction')) {
+    showToast('Akun CREW hanya bisa melihat data', 'warning');
+    return;
+  }
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const tab = document.getElementById(id);
@@ -1194,6 +1273,8 @@ function onUnitClick(num) {
 }
 
 function forceCheckout(id) {
+  if (currentUser && currentUser.role === 'crew') { showToast('Akun CREW tidak bisa melakukan aksi ini', 'warning'); return false; }
+
   const r = records.find(x => x.id === id);
   if (r) {
     r.checkOut = nowTime();
@@ -1276,6 +1357,8 @@ function resetRentalForm() {
 // FORM SUBMIT HANDLERS
 // ============================================================
 function handleRentalSubmit(e) {
+  if (currentUser && currentUser.role === 'crew') { showToast('Akun CREW tidak bisa melakukan aksi ini', 'warning'); return false; }
+
   e.preventDefault();
   let marketing = document.getElementById('marketing').value;
   if (marketing === 'other') {
@@ -1327,6 +1410,8 @@ function handleRentalSubmit(e) {
 }
 
 function handleIncomeSubmit(e) {
+  if (currentUser && currentUser.role === 'crew') { showToast('Akun CREW tidak bisa melakukan aksi ini', 'warning'); return false; }
+
   e.preventDefault();
   const amt = parseInt(document.getElementById('incomeAmount').value) || 0;
   if (!amt) { showToast('Isi nominal!', 'error'); return false; }
@@ -1352,6 +1437,8 @@ function handleIncomeSubmit(e) {
 }
 
 function handleExpenseSubmit(e) {
+  if (currentUser && currentUser.role === 'crew') { showToast('Akun CREW tidak bisa melakukan aksi ini', 'warning'); return false; }
+
   e.preventDefault();
   const amt = parseInt(document.getElementById('expenseAmount').value) || 0;
   const cat = document.getElementById('expenseCategory').value;
@@ -1575,6 +1662,8 @@ function clearFilters() {
 }
 
 function deleteRecord(id) {
+  if (currentUser && currentUser.role === 'crew') { showToast('Akun CREW tidak bisa melakukan aksi ini', 'warning'); return false; }
+
   if (!confirm('Hapus record ini? Tindakan tidak bisa dibatalkan.')) return;
   records = records.filter(r => r.id !== id);
   saveRecordsToLocalStorage();
@@ -1855,6 +1944,103 @@ function checkCheckoutNotifications() {
 }
 
 // ============================================================
+// AUTH SYSTEM v3.6 — Role-based login
+// ============================================================
+
+// Akun & role (internal tool, plain credentials by design)
+const ACCOUNTS = [
+  { username: 'KINGBEJH',  password: 'kotabaru99', role: 'supreme', label: '👑 SUPREME' },
+  { username: 'IBUZEA',    password: '190277',      role: 'owner',   label: '🏠 OWNER'   },
+  { username: 'ADMINZEA',  password: 'zeakelola',   role: 'admin',   label: '⚙️ ADMIN'   },
+  { username: 'ZEACREW',   password: 'zeagwp',      role: 'crew',    label: '👁 CREW'    },
+];
+
+let currentUser = null;
+
+function doLogin() {
+  const username = document.getElementById('loginUsername').value.trim().toUpperCase();
+  const password = document.getElementById('loginPassword').value.trim();
+  const errEl    = document.getElementById('loginError');
+
+  // small delay so button animation shows
+  const account = ACCOUNTS.find(a => a.username === username && a.password === password);
+
+  if (!account) {
+    errEl.classList.add('show');
+    document.getElementById('loginPassword').value = '';
+    setTimeout(() => errEl.classList.remove('show'), 3000);
+    return;
+  }
+
+  // Save session
+  currentUser = { username: account.username, role: account.role, label: account.label };
+  sessionStorage.setItem('sz_user', JSON.stringify(currentUser));
+
+  applySession();
+}
+
+function doLogout() {
+  if (!confirm('Yakin mau keluar?')) return;
+  sessionStorage.removeItem('sz_user');
+  currentUser = null;
+  // Reset UI
+  document.body.classList.remove('crew-mode');
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('loginUsername').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('crewBanner').classList.remove('show');
+  document.getElementById('userBadge').textContent = '';
+  showToast('Berhasil keluar', 'info');
+}
+
+function applySession() {
+  if (!currentUser) return;
+
+  // Hide login screen
+  document.getElementById('loginScreen').classList.add('hidden');
+
+  // Set user badge in header
+  const badge = document.getElementById('userBadge');
+  badge.textContent = currentUser.label + '  ' + currentUser.username;
+  badge.className = 'role-badge ' + currentUser.role;
+
+  // Apply CREW restrictions
+  if (currentUser.role === 'crew') {
+    document.body.classList.add('crew-mode');
+    document.getElementById('crewBanner').classList.add('show');
+    // Switch to dashboard if somehow on restricted tab
+    switchTab('dashboard');
+  } else {
+    document.body.classList.remove('crew-mode');
+    document.getElementById('crewBanner').classList.remove('show');
+  }
+
+  showToast('Selamat datang, ' + currentUser.username + '! (' + currentUser.role.toUpperCase() + ')', 'success');
+}
+
+function checkSession() {
+  try {
+    const saved = sessionStorage.getItem('sz_user');
+    if (saved) {
+      currentUser = JSON.parse(saved);
+      applySession();
+      return true;
+    }
+  } catch(e) { sessionStorage.removeItem('sz_user'); }
+  return false;
+}
+
+// Allow Enter key to login
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !document.getElementById('loginScreen').classList.contains('hidden')) {
+    doLogin();
+  }
+});
+
+// Block CREW from accessing restricted tabs via direct function call
+const _origSwitchTab = null; // patched in init
+
+// ============================================================
 // INIT
 // ============================================================
 function init() {
@@ -1907,6 +2093,9 @@ function init() {
   renderUnitGrid();
   renderRecentTransactions();
   applyFilters();
+
+  // Check existing session (restore login after page refresh)
+  checkSession();
 }
 
 document.addEventListener('DOMContentLoaded', init);
