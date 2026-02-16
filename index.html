@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="app-name" content="SaldoZea">
-<meta name="version" content="3.7">
+<meta name="version" content="3.8">
 <!-- PWA manifest inline -->
 <link rel="manifest" href="data:application/json;charset=utf-8,%7B%22name%22%3A%22SaldoZea%20Rental%22%2C%22short_name%22%3A%22SaldoZea%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f1117%22%2C%22theme_color%22%3A%22%236366f1%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Crect%20width%3D%27100%27%20height%3D%27100%27%20rx%3D%2220%27%20fill%3D%27%236366f1%27%2F%3E%3Ctext%20x%3D%2750%27%20y%3D%2770%27%20text-anchor%3D%27middle%27%20font-size%3D%2750%27%20fill%3D%27white%27%20font-weight%3D%27bold%27%3ESZ%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22any%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
 <meta name="theme-color" content="#6366f1">
@@ -41,7 +41,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .connection-status.online { background: rgba(16,185,129,0.2); color: var(--accent-success); border: 1px solid var(--accent-success); }
 .connection-status.offline { background: rgba(239,68,68,0.2); color: var(--accent-danger); border: 1px solid var(--accent-danger); }
 .connection-status.connecting { background: rgba(245,158,11,0.2); color: var(--accent-warning); border: 1px solid var(--accent-warning); }
-.header { background: linear-gradient(135deg, rgba(99,102,241,0.95) 0%, rgba(139,92,246,0.95) 50%, rgba(168,85,247,0.95) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-lg), var(--shadow-glow); border-bottom: 1px solid rgba(255,255,255,0.1); }
+.led-bar { position:sticky; top:0; z-index:102; }
+.header { background: linear-gradient(135deg, rgba(99,102,241,0.95) 0%, rgba(139,92,246,0.95) 50%, rgba(168,85,247,0.95) 100%); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 1rem 1.5rem; position: sticky; top: 36px; z-index: 100; box-shadow: var(--shadow-lg), var(--shadow-glow); border-bottom: 1px solid rgba(255,255,255,0.1); }
 .header-content { max-width: 1600px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
 .logo { display: flex; align-items: center; gap: 0.75rem; }
 .logo-icon { width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; color: white; }
@@ -55,7 +56,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-
 .header-time { display: flex; flex-direction: column; align-items: flex-end; }
 .header-date { font-size: 0.8rem; color: rgba(255,255,255,0.8); }
 .header-clock { font-size: 1.3rem; font-weight: 700; color: white; font-variant-numeric: tabular-nums; }
-.nav { background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); overflow-x: auto; position: sticky; top: 77px; z-index: 99; -webkit-overflow-scrolling: touch; }
+.nav { background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); overflow-x: auto; position: sticky; top: 113px; z-index: 99; -webkit-overflow-scrolling: touch; }
 .nav::-webkit-scrollbar { height: 0; }
 .nav-content { max-width: 1600px; margin: 0 auto; display: flex; padding: 0 1rem; }
 .nav-btn { padding: 1rem 1.5rem; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: var(--transition); border-bottom: 3px solid transparent; white-space: nowrap; display: flex; align-items: center; gap: 0.5rem; position: relative; touch-action: manipulation; }
@@ -326,6 +327,78 @@ PRESENCE / WHO’S ONLINE SYSTEM
 .toast.boss { background:linear-gradient(135deg,rgba(168,85,247,0.97),rgba(139,92,246,0.97)); font-size:1rem; }
 
 @media(max-width:768px){ .online-panel { top:auto; bottom:150px; right:10px; } .online-pill { font-size:0.68rem; padding:5px 10px; } }
+
+/* ============================================================
+LED MOVING SIGN
+============================================================ */
+.led-bar {
+width:100%; overflow:hidden; position:relative; z-index:101;
+padding:0; display:flex; align-items:center;
+background:#0a0a0a; border-bottom:2px solid;
+height:36px; flex-shrink:0;
+}
+.led-bar-inner {
+display:flex; align-items:center;
+white-space:nowrap; will-change:transform;
+animation:ledScroll 28s linear infinite;
+font-family:‘Courier New’,Courier,monospace;
+font-size:0.88rem; font-weight:700; letter-spacing:2px;
+text-shadow:0 0 8px currentColor, 0 0 16px currentColor;
+padding-right:80px;
+}
+.led-bar-inner span { margin:0 4px; opacity:0.3; }
+@keyframes ledScroll {
+0%   { transform:translateX(100vw); }
+100% { transform:translateX(-100%); }
+}
+.led-bar.paused .led-bar-inner { animation-play-state:paused; }
+
+/* LED color presets */
+.led-green  { border-color:#00ff41; color:#00ff41; }
+.led-red    { border-color:#ff2200; color:#ff2200; }
+.led-amber  { border-color:#ffb300; color:#ffb300; }
+.led-cyan   { border-color:#00e5ff; color:#00e5ff; }
+.led-pink   { border-color:#ff4da6; color:#ff4da6; }
+.led-white  { border-color:#e2e8f0; color:#e2e8f0; }
+.led-purple { border-color:#c084fc; color:#c084fc; }
+
+/* ============================================================
+🔒 SUPREME PLAYGROUND TAB
+============================================================ */
+.supreme-section { margin-bottom:2rem; }
+.supreme-section-title {
+font-size:0.7rem; text-transform:uppercase; letter-spacing:2px;
+color:var(–text-muted); font-weight:700;
+padding:0 0 0.75rem 0; border-bottom:1px solid var(–border-color);
+margin-bottom:1.25rem; display:flex; align-items:center; gap:0.5rem;
+}
+.led-color-grid { display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:0.75rem; }
+.led-color-btn {
+width:48px; height:48px; border-radius:var(–radius-md); border:3px solid transparent;
+cursor:pointer; transition:var(–transition); display:flex; align-items:center;
+justify-content:center; font-size:1.1rem; touch-action:manipulation;
+box-shadow:0 0 12px currentColor;
+}
+.led-color-btn:hover { transform:scale(1.15); }
+.led-color-btn.active { border-color:white; transform:scale(1.15); }
+.led-preview {
+background:#0a0a0a; border-radius:var(–radius-md); padding:1rem 1.5rem;
+overflow:hidden; position:relative; margin-top:1rem; min-height:52px;
+display:flex; align-items:center; border:2px solid var(–border-color);
+}
+.led-preview-inner {
+font-family:‘Courier New’,Courier,monospace; font-size:1rem; font-weight:700;
+letter-spacing:2px; white-space:nowrap;
+text-shadow:0 0 8px currentColor, 0 0 16px currentColor;
+animation:ledScroll 10s linear infinite;
+}
+.supreme-badge-big {
+display:inline-flex; align-items:center; gap:0.75rem;
+padding:0.75rem 1.5rem; border-radius:var(–radius-lg);
+background:linear-gradient(135deg,rgba(168,85,247,0.2),rgba(99,102,241,0.15));
+border:1.5px solid rgba(192,132,252,0.5); margin-bottom:1.5rem;
+font-size:0.85rem; font-weight:700; color:#c084fc;
+}
 </style>
 
 </head>
@@ -338,7 +411,7 @@ PRESENCE / WHO’S ONLINE SYSTEM
     <div class="login-logo">
       <div class="login-logo-icon">SZ</div>
       <div class="login-logo-title">SaldoZea Rental</div>
-      <div class="login-logo-sub">Apartment System v3.7</div>
+      <div class="login-logo-sub">Apartment System v3.8</div>
     </div>
     <div class="login-form">
       <div class="login-input-wrap">
@@ -414,13 +487,21 @@ PRESENCE / WHO’S ONLINE SYSTEM
   </div>
 </div>
 
+<!-- ====== LED Moving Sign ====== -->
+
+<div class="led-bar led-green" id="ledBar">
+  <div class="led-bar-inner" id="ledBarInner">
+    ★ &nbsp; Selamat datang di SaldoZea Rental Management System &nbsp; ◆ &nbsp; Pastikan setiap transaksi dicatat dengan benar &nbsp; ◆ &nbsp; Terima kasih atas kerja keras kalian semua &nbsp; ★
+  </div>
+</div>
+
 <div class="header">
   <div class="header-content">
     <div class="logo">
       <div class="logo-icon">SZ</div>
       <div class="logo-text">
         <div class="logo-title">SaldoZea Rental</div>
-        <div class="logo-subtitle">APARTMENT SYSTEM v3.7</div>
+        <div class="logo-subtitle">APARTMENT SYSTEM v3.8</div>
       </div>
     </div>
     <div class="header-info">
@@ -450,6 +531,7 @@ PRESENCE / WHO’S ONLINE SYSTEM
     <button class="nav-btn" data-tab="units" onclick="switchTab('units')">Unit<span class="badge-count" id="checkoutBadge" style="display:none">0</span></button>
     <button class="nav-btn" data-tab="history" onclick="switchTab('history')">Riwayat</button>
     <button class="nav-btn" data-tab="report" onclick="switchTab('report')">Laporan</button>
+    <button class="nav-btn" data-tab="supreme" id="supremeNavBtn" onclick="switchTab('supreme')" style="display:none;color:#c084fc">🔒</button>
   </div>
 </nav>
 
@@ -939,6 +1021,87 @@ PRESENCE / WHO’S ONLINE SYSTEM
     </div>
   </div>
 
+  <!-- 🔒 SUPREME PLAYGROUND -->
+
+  <div id="supreme" class="tab-content">
+    <div class="supreme-badge-big">
+      <span style="font-size:1.5rem">👑</span>
+      <div>
+        <div style="font-size:1rem;font-weight:800">Supreme Playground</div>
+        <div style="font-size:0.7rem;opacity:0.7;letter-spacing:1px">AKSES EKSKLUSIF — HANYA TERLIHAT OLEH ANDA</div>
+      </div>
+    </div>
+
+```
+<!-- MOVING SIGN EDITOR -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title"><div class="card-title-icon warning">📺</div>Edit LED Moving Sign</div>
+    <div style="font-size:0.75rem;color:var(--text-muted)">Pesan tampil realtime ke semua pengguna</div>
+  </div>
+
+  <!-- Preview -->
+  <div class="supreme-section">
+    <div class="supreme-section-title">🔎 Preview Live</div>
+    <div class="led-preview led-green" id="ledPreviewBox">
+      <div class="led-preview-inner" id="ledPreviewText">Preview pesan...</div>
+    </div>
+  </div>
+
+  <!-- Warna LED -->
+  <div class="supreme-section">
+    <div class="supreme-section-title">🎨 Warna LED</div>
+    <div class="led-color-grid" id="ledColorGrid">
+      <button class="led-color-btn active" data-color="led-green"  style="background:#003b0f;color:#00ff41" onclick="selectLedColor('led-green',this)"  title="Matrix Green">▓</button>
+      <button class="led-color-btn"        data-color="led-amber"  style="background:#3b2500;color:#ffb300" onclick="selectLedColor('led-amber',this)"  title="Amber">▓</button>
+      <button class="led-color-btn"        data-color="led-red"    style="background:#3b0000;color:#ff2200" onclick="selectLedColor('led-red',this)"    title="Red Alert">▓</button>
+      <button class="led-color-btn"        data-color="led-cyan"   style="background:#003033;color:#00e5ff" onclick="selectLedColor('led-cyan',this)"   title="Cyan">▓</button>
+      <button class="led-color-btn"        data-color="led-purple" style="background:#1e0038;color:#c084fc" onclick="selectLedColor('led-purple',this)" title="Purple">▓</button>
+      <button class="led-color-btn"        data-color="led-pink"   style="background:#38001e;color:#ff4da6" onclick="selectLedColor('led-pink',this)"   title="Pink">▓</button>
+      <button class="led-color-btn"        data-color="led-white"  style="background:#1a1a2e;color:#e2e8f0" onclick="selectLedColor('led-white',this)"  title="White">▓</button>
+    </div>
+  </div>
+
+  <!-- Kecepatan scroll -->
+  <div class="supreme-section">
+    <div class="supreme-section-title">⚡ Kecepatan Scroll</div>
+    <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+      <button class="btn btn-secondary btn-sm" onclick="setLedSpeed('slow')">🐢 Lambat</button>
+      <button class="btn btn-secondary btn-sm" onclick="setLedSpeed('normal')">▶ Normal</button>
+      <button class="btn btn-secondary btn-sm" onclick="setLedSpeed('fast')">⚡ Cepat</button>
+    </div>
+  </div>
+
+  <!-- Pesan -->
+  <div class="supreme-section">
+    <div class="supreme-section-title">✍️ Teks Pesan</div>
+    <textarea class="form-input" id="ledMessageInput" rows="4"
+      placeholder="Ketik pesan pengumuman di sini..."
+      oninput="previewLedMessage()"
+      style="font-family:'Courier New',monospace;letter-spacing:1px;resize:vertical"></textarea>
+    <div class="form-hint" style="margin-top:0.5rem">Pisahkan segmen dengan <code style="background:var(--bg-input);padding:0 4px;border-radius:3px">◆</code> untuk spasi antar kalimat</div>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn btn-primary btn-lg" onclick="saveLedMessage()">📡 Publish ke Semua User</button>
+    <button class="btn btn-secondary" onclick="resetLedDefault()">↺ Reset ke Default</button>
+    <button class="btn btn-warning btn-sm" onclick="toggleLedPause()">⏸ Pause/Play</button>
+  </div>
+</div>
+
+<!-- Placeholder for future supreme features -->
+<div class="card" style="border-style:dashed;opacity:0.5">
+  <div class="card-header">
+    <div class="card-title"><div class="card-title-icon">➕</div>Fitur Berikutnya...</div>
+  </div>
+  <div style="text-align:center;padding:2rem;color:var(--text-muted);font-size:0.9rem">
+    Fitur eksklusif lainnya akan ditambahkan di sini
+  </div>
+</div>
+```
+
+  </div>
+
 </div><!-- /main -->
 
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -1215,6 +1378,11 @@ function switchTab(id) {
     showToast('Akun CREW hanya bisa melihat data', 'warning');
     return;
   }
+  // Block non-SUPREME from supreme tab
+  if (id === 'supreme' && (!currentUser || currentUser.role !== 'supreme')) {
+    showToast('🔒 Akses ditolak', 'error');
+    return;
+  }
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const tab = document.getElementById(id);
@@ -1223,6 +1391,7 @@ function switchTab(id) {
   if (btn) btn.classList.add('active');
   currentActiveTab = id; // track for bug reports
   if (id === 'dashboard') updateDashboard();
+  if (id === 'supreme') loadLedEditorFromFirebase();
   if (id === 'units') renderUnitGrid();
   if (id === 'history') applyFilters();
   if (id === 'transaction') renderRecentTransactions();
@@ -2010,6 +2179,146 @@ function checkCheckoutNotifications() {
 }
 
 // ============================================================
+// LED MOVING SIGN SYSTEM
+// ============================================================
+
+const LED_DEFAULT_MSG   = '★  Selamat datang di SaldoZea Rental Management System  ◆  Pastikan setiap transaksi dicatat dengan benar  ◆  Terima kasih atas kerja keras kalian semua  ★';
+const LED_DEFAULT_COLOR = 'led-green';
+const LED_DEFAULT_SPEED = 'normal';
+const LED_SPEEDS        = { slow:42, normal:28, fast:16 }; // detik per putaran
+
+let ledCurrentColor = LED_DEFAULT_COLOR;
+let ledPaused       = false;
+
+// ── Apply message + color + speed ke LED bar ────────────────
+function applyLedBar(msg, color, speed) {
+  const bar   = document.getElementById('ledBar');
+  const inner = document.getElementById('ledBarInner');
+  if (!bar || !inner) return;
+
+  // Update teks
+  inner.textContent = msg || LED_DEFAULT_MSG;
+
+  // Update warna — hapus semua kelas led-*
+  bar.className = bar.className.replace(/led-\S+/g, '').trim();
+  bar.classList.add('led-bar', color || LED_DEFAULT_COLOR);
+
+  // Update kecepatan animasi
+  const dur = LED_SPEEDS[speed || 'normal'] || 28;
+  inner.style.animationDuration = dur + 's';
+}
+
+// ── Save ke Firebase dan terapkan ke semua user ─────────────
+function saveLedMessage() {
+  const msg   = document.getElementById('ledMessageInput').value.trim();
+  const speed = document.querySelector('[data-led-speed].active-speed')?.dataset.ledSpeed || 'normal';
+  if (!msg) { showToast('Pesan tidak boleh kosong!', 'error'); return; }
+
+  const data = { msg, color: ledCurrentColor, speed, updatedBy: currentUser.username, updatedAt: Date.now() };
+
+  if (firebaseInitialized && db) {
+    db.ref('led_sign').set(data)
+      .then(() => showToast('📡 Pesan berhasil dipublish ke semua user!', 'success'))
+      .catch(() => showToast('Gagal simpan ke server', 'error'));
+  } else {
+    // Offline fallback: update lokal saja
+    applyLedBar(msg, ledCurrentColor, speed);
+    showToast('Pesan diperbarui (offline)', 'warning');
+  }
+}
+
+function resetLedDefault() {
+  if (!confirm('Reset ke pesan default?')) return;
+  const data = { msg: LED_DEFAULT_MSG, color: LED_DEFAULT_COLOR, speed: 'normal', updatedBy: currentUser.username, updatedAt: Date.now() };
+  if (firebaseInitialized && db) {
+    db.ref('led_sign').set(data)
+      .then(() => showToast('LED direset ke default', 'success'));
+  }
+  document.getElementById('ledMessageInput').value = LED_DEFAULT_MSG;
+  selectLedColor(LED_DEFAULT_COLOR, document.querySelector('[data-color="' + LED_DEFAULT_COLOR + '"]'));
+  previewLedMessage();
+}
+
+// ── Pilih warna LED ─────────────────────────────────────────
+function selectLedColor(colorClass, btnEl) {
+  ledCurrentColor = colorClass;
+  // Update active state tombol
+  document.querySelectorAll('.led-color-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  // Update preview
+  const preview = document.getElementById('ledPreviewBox');
+  if (preview) {
+    preview.className = preview.className.replace(/led-\S+/g, '').trim();
+    preview.classList.add('led-preview', colorClass);
+    const pi = document.getElementById('ledPreviewText');
+    if (pi) { pi.className = pi.className; pi.style.color = ''; } // inherit from parent
+  }
+}
+
+// ── Kecepatan ───────────────────────────────────────────────
+function setLedSpeed(speed) {
+  const dur = LED_SPEEDS[speed] || 28;
+  const inner = document.getElementById('ledBarInner');
+  if (inner) inner.style.animationDuration = dur + 's';
+  const prev = document.getElementById('ledPreviewText');
+  if (prev) prev.style.animationDuration = (dur * 0.36) + 's';
+  showToast('Kecepatan: ' + speed, 'info');
+}
+
+// ── Pause / Play ─────────────────────────────────────────────
+function toggleLedPause() {
+  ledPaused = !ledPaused;
+  const bar = document.getElementById('ledBar');
+  if (bar) bar.classList.toggle('paused', ledPaused);
+  showToast(ledPaused ? '⏸ LED dihentikan' : '▶ LED berjalan', 'info');
+}
+
+// ── Live preview di editor ───────────────────────────────────
+function previewLedMessage() {
+  const val  = document.getElementById('ledMessageInput')?.value || '';
+  const prev = document.getElementById('ledPreviewText');
+  if (prev) prev.textContent = val || 'Preview pesan...';
+}
+
+// ── Firebase listener: terapkan perubahan LED ke semua user ──
+function listenLedSign() {
+  if (!firebaseInitialized || !db) return;
+  db.ref('led_sign').on('value', function(snap) {
+    const data = snap.val();
+    if (!data) return;
+    applyLedBar(data.msg, data.color, data.speed);
+    // Jika tab supreme sedang terbuka, sync editor juga
+    if (currentUser && currentUser.role === 'supreme') {
+      const inp = document.getElementById('ledMessageInput');
+      if (inp && document.getElementById('supreme').classList.contains('active')) {
+        inp.value = data.msg || '';
+        previewLedMessage();
+        selectLedColor(data.color || LED_DEFAULT_COLOR, document.querySelector('[data-color="' + (data.color || LED_DEFAULT_COLOR) + '"]'));
+      }
+    }
+  });
+}
+
+// ── Load data ke editor saat supreme buka tab ───────────────
+function loadLedEditorFromFirebase() {
+  if (!firebaseInitialized || !db) return;
+  db.ref('led_sign').once('value', function(snap) {
+    const data = snap.val();
+    if (!data) return;
+    const inp = document.getElementById('ledMessageInput');
+    if (inp) inp.value = data.msg || '';
+    previewLedMessage();
+    selectLedColor(data.color || LED_DEFAULT_COLOR, document.querySelector('[data-color="' + (data.color || LED_DEFAULT_COLOR) + '"]'));
+  });
+}
+
+// ── Init LED dari Firebase saat pertama buka ─────────────────
+function initLedSign() {
+  applyLedBar(LED_DEFAULT_MSG, LED_DEFAULT_COLOR, 'normal');
+  listenLedSign();
+}
+
+// ============================================================
 // PRESENCE SYSTEM — Who's Online (Firebase-powered)
 // ============================================================
 
@@ -2292,6 +2601,10 @@ function applySession() {
   badge.textContent = currentUser.label + '  ' + currentUser.username;
   badge.className = 'role-badge ' + currentUser.role;
 
+  // Show/hide supreme nav button
+  const supBtn = document.getElementById('supremeNavBtn');
+  if (supBtn) supBtn.style.display = currentUser.role === 'supreme' ? '' : 'none';
+
   // Apply CREW restrictions
   if (currentUser.role === 'crew') {
     document.body.classList.add('crew-mode');
@@ -2375,6 +2688,9 @@ function init() {
   document.getElementById('filterDate').value = getBusinessDate();
   document.getElementById('reportStart').value = getBusinessDate().slice(0, 8) + '01';
   document.getElementById('reportEnd').value = getBusinessDate();
+
+  // Init LED sign
+  initLedSign();
 
   // Render dari localStorage dulu, sebelum Firebase data tiba
   updateDashboard();
