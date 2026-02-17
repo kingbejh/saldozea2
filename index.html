@@ -1160,7 +1160,9 @@ function rebuildAllUnitsList() {
 rebuildAllUnitsList();
 
 const DUR_HOURS  = { '1J':1,'2J':2,'3J':3,'4J':4,'5J':5,'6J':6,'7J':7,'8J':8,'PM':12,'FD':24 };
-const DUR_LABELS = { '1J':'1J Charge','2J':'2J Charge','3J':'3 Jam','4J':'4 Jam','5J':'5 Jam','6J':'6 Jam','7J':'7 Jam','8J':'8 Jam','PM':'Promo Malam','FD':'Fullday' };
+const DUR_LABELS = { '1J':'⚡ 1J Charge (tdk hitung tamu)','2J':'⚡ 2J Charge (tdk hitung tamu)','3J':'3 Jam','4J':'4 Jam','5J':'5 Jam','6J':'6 Jam','7J':'7 Jam','8J':'8 Jam','PM':'Promo Malam','FD':'Fullday 24J' };
+// Label ringkas untuk tabel & badge
+const DUR_SHORT = { '1J':'⚡Charge 1J','2J':'⚡Charge 2J','3J':'3J','4J':'4J','5J':'5J','6J':'6J','7J':'7J','8J':'8J','PM':'PM','FD':'FD' };
 
 const PRICES = {
   Studio: {
@@ -1569,7 +1571,7 @@ function calcBasePrice() {
 
 function updateDurationHint() {
   const d = document.getElementById('duration').value;
-  const hints = { '1J':'Charge telat CO/early CI', '2J':'Charge telat CO/early CI', 'PM':'Promo malam 21:00–09:00', 'FD':'Full 24 jam' };
+  const hints = { '1J':'⚡ Charge — Nominal masuk saldo, TIDAK dihitung sebagai tamu baru', '2J':'⚡ Charge — Nominal masuk saldo, TIDAK dihitung sebagai tamu baru', 'PM':'Promo malam 21:00–09:00', 'FD':'Full 24 jam' };
   document.getElementById('durationHint').textContent = hints[d] || (DUR_HOURS[d] ? 'Durasi ' + DUR_HOURS[d] + ' jam' : '');
 }
 
@@ -1743,10 +1745,14 @@ function updateDashboard() {
       tTransfer += r.transferAmount || 0;
       tQR += r.qrAmount || 0;
       rentalInc += r.totalPayment || 0;
-      guests++;
-      unitsUsed.add(r.unitNumber);
-      mktCounts[r.marketing] = (mktCounts[r.marketing] || 0) + 1;
-      unitCounts[r.unitNumber] = (unitCounts[r.unitNumber] || 0) + 1;
+      // 1J & 2J = Charge/Extend — nominal masuk saldo tapi TIDAK dihitung tamu
+      const isCharge = (r.duration === '1J' || r.duration === '2J');
+      if (!isCharge) {
+        guests++;
+        unitsUsed.add(r.unitNumber);
+        mktCounts[r.marketing] = (mktCounts[r.marketing] || 0) + 1;
+        unitCounts[r.unitNumber] = (unitCounts[r.unitNumber] || 0) + 1;
+      }
       durCounts[r.duration] = (durCounts[r.duration] || 0) + 1;
       if (r.feeStatus === 'unpaid' && r.marketingFee > 0) {
         unpaidFees += r.marketingFee;
@@ -1788,7 +1794,7 @@ function updateDashboard() {
 
   let monthInc=0, monthExp=0, monthGuests=0;
   monthRecs.forEach(r => {
-    if (r.type === 'rental') { monthInc += r.totalPayment || 0; monthGuests++; }
+    if (r.type === 'rental') { monthInc += r.totalPayment || 0; if (r.duration !== '1J' && r.duration !== '2J') monthGuests++; }
     else if (r.type === 'income') monthInc += r.amount || 0;
     else if (r.type === 'expense') monthExp += r.amount || 0;
   });
@@ -1966,10 +1972,15 @@ function generateReport() {
   const mktC={}, unitC={}, durC={};
   recs.forEach(r => {
     if (r.type === 'rental') {
-      inc += r.totalPayment||0; guests++;
+      inc += r.totalPayment||0;
       cash += r.cashAmount||0; transfer += r.transferAmount||0; qr += r.qrAmount||0;
-      mktC[r.marketing] = (mktC[r.marketing]||0)+1;
-      unitC[r.unitNumber] = (unitC[r.unitNumber]||0)+1;
+      // 1J & 2J = Charge/Extend — tidak dihitung tamu & tidak masuk top marketing/unit
+      const isChargeR = (r.duration === '1J' || r.duration === '2J');
+      if (!isChargeR) {
+        guests++;
+        mktC[r.marketing] = (mktC[r.marketing]||0)+1;
+        unitC[r.unitNumber] = (unitC[r.unitNumber]||0)+1;
+      }
       durC[r.duration] = (durC[r.duration]||0)+1;
     } else if (r.type === 'income') {
       inc += r.amount||0;
