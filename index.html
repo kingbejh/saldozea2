@@ -2880,7 +2880,9 @@ parts:[{text:fullPrompt}]
 );
 
 if(!response.ok){
-return "error koneksi ke layanan ai.";
+  const errData = await response.json();
+  const errMsg = errData?.error?.message || response.status;
+  return `error ${response.status}: ${errMsg}`;
 }
 
 const data=await response.json();
