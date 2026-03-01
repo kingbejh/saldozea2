@@ -649,9 +649,60 @@ font-size:0.85rem; font-weight:700; color:#c084fc;
       <div class="card">
         <div class="card-header"><div class="card-title"><div class="card-title-icon cyan">⏱️</div>Durasi Populer Hari Ini</div></div>
         <div class="top-list" id="topDurations"><div class="empty-state"><div class="empty-state-text">Belum ada data</div></div></div>
+            </div>
+    </div>
+
+    <!-- FITUR BARU -->
+    <div style="margin-top:1rem;">
+
+      <!-- Grafik Tren 30 Hari -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-header">
+          <div class="card-title"><div class="card-title-icon primary">📊</div>Tren Pendapatan 30 Hari Terakhir</div>
+        </div>
+        <canvas id="trendChart" style="width:100%;height:160px;display:block;"></canvas>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;">
+
+        <!-- Occupancy Rate -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><div class="card-title-icon cyan">🏢</div>Occupancy Rate Hari Ini</div></div>
+          <div style="padding:1rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+              <span style="font-size:2rem;font-weight:700;color:var(--accent-1)" id="occupancyPct">0%</span>
+              <span style="font-size:0.85rem;color:var(--text-secondary)" id="occupancyDetail">0 / 0 unit</span>
+            </div>
+            <div style="background:var(--bg-input);border-radius:999px;height:12px;overflow:hidden;">
+              <div id="occupancyBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent-1),var(--accent-success));border-radius:999px;transition:width 0.6s ease;"></div>
+            </div>
+            <div style="margin-top:0.5rem;font-size:0.75rem;color:var(--text-muted)" id="occupancyLabel">Menghitung...</div>
+          </div>
+        </div>
+
+        <!-- Target Harian -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><div class="card-title-icon success">🎯</div>Target Harian</div></div>
+          <div style="padding:1rem;">
+            <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;align-items:center;">
+              <input type="number" id="dailyTargetInput" placeholder="Target harian (Rp)" style="flex:1;padding:0.5rem;border-radius:var(--radius-md);border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-primary);font-size:0.85rem;">
+              <button onclick="saveDailyTarget()" style="padding:0.5rem 0.75rem;border-radius:var(--radius-md);background:var(--accent-1);color:#fff;border:none;cursor:pointer;font-weight:600;">Set</button>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+              <span style="font-size:0.8rem;color:var(--text-secondary)">Pencapaian:</span>
+              <span style="font-size:1.1rem;font-weight:700;color:var(--accent-1)" id="targetPct">0%</span>
+            </div>
+            <div style="background:var(--bg-input);border-radius:999px;height:12px;overflow:hidden;">
+              <div id="targetBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent-success),#00e676);border-radius:999px;transition:width 0.6s ease;"></div>
+            </div>
+            <div style="margin-top:0.5rem;font-size:0.75rem;color:var(--text-muted)" id="targetLabel">Belum ada target</div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
+
 
   <!-- RENTAL -->
 
@@ -1811,7 +1862,157 @@ function updateDashboard() {
     alertEl.style.display = 'flex';
     document.getElementById('checkoutAlertList').textContent = coSoonUnits.map(u => u.number + ' (' + u.remaining + 'm)').join(', ');
   } else alertEl.style.display = 'none';
+  // ===== Occupancy Rate =====
+  const totalUnits = ALL_UNITS.length;
+  const occupiedNow = ALL_UNITS.filter(u => {
+    const s = getUnitStatus(u.number).status;
+    return s === 'occupied' || s === 'checkout-soon';
+  }).length;
+  const occPct = totalUnits > 0 ? Math.round((occupiedNow / totalUnits) * 100) : 0;
+  const occEl = document.getElementById('occupancyPct');
+  const occBar = document.getElementById('occupancyBar');
+  const occDetail = document.getElementById('occupancyDetail');
+  const occLabel = document.getElementById('occupancyLabel');
+  if (occEl) occEl.textContent = occPct + '%';
+  if (occBar) occBar.style.width = occPct + '%';
+  if (occDetail) occDetail.textContent = occupiedNow + ' / ' + totalUnits + ' unit';
+  if (occLabel) occLabel.textContent = occPct >= 80 ? '🔥 Hampir penuh!' : occPct >= 50 ? '✅ Cukup ramai' : '😴 Masih sepi';
+
+  // ===== Target Harian =====
+  const savedTarget = parseInt(localStorage.getItem('sz_daily_target')) || 0;
+  const targetInput = document.getElementById('dailyTargetInput');
+  if (targetInput && savedTarget && !document.activeElement !== targetInput) {
+    targetInput.placeholder = 'Target: Rp ' + savedTarget.toLocaleString('id-ID');
+  }
+  const tgtPctEl = document.getElementById('targetPct');
+  const tgtBar = document.getElementById('targetBar');
+  const tgtLabel = document.getElementById('targetLabel');
+  if (savedTarget > 0) {
+    const pct = Math.min(Math.round((totalIncome / savedTarget) * 100), 100);
+    if (tgtPctEl) tgtPctEl.textContent = pct + '%';
+    if (tgtBar) tgtBar.style.width = pct + '%';
+    const sisa = savedTarget - totalIncome;
+    if (tgtLabel) tgtLabel.textContent = pct >= 100 ? '🎉 Target tercapai!' : 'Kurang ' + fmt(sisa) + ' lagi dari target ' + fmt(savedTarget);
+  } else {
+    if (tgtPctEl) tgtPctEl.textContent = '0%';
+    if (tgtBar) tgtBar.style.width = '0%';
+    if (tgtLabel) tgtLabel.textContent = 'Belum ada target. Set dulu di atas.';
+  }
+
+  // ===== Grafik 30 Hari =====
+  renderTrendChart();
 }
+
+function saveDailyTarget() {
+  const val = parseInt(document.getElementById('dailyTargetInput').value) || 0;
+  if (!val) { showToast('Isi nominal target dulu!', 'error'); return; }
+  localStorage.setItem('sz_daily_target', val);
+  document.getElementById('dailyTargetInput').value = '';
+  showToast('Target harian disimpan: ' + fmt(val), 'success');
+  updateDashboard();
+}
+
+function renderTrendChart() {
+  const canvas = document.getElementById('trendChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const days = [], incomes = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const dateStr = y + '-' + m + '-' + dd;
+    // Label: hanya tampilkan tiap 5 hari supaya tidak padat
+    days.push(i % 5 === 0 || i === 0 ? dd + '/' + m : '');
+    let inc = 0;
+    records.filter(r => r.date === dateStr && r.status !== 'cancelled').forEach(r => {
+      if (r.type === 'rental') inc += r.totalPayment || 0;
+      else if (r.type === 'income') inc += r.amount || 0;
+    });
+    incomes.push(inc);
+  }
+
+  const maxVal = Math.max(...incomes, 1);
+  const W = canvas.offsetWidth || canvas.parentElement.offsetWidth || 600;
+  const H = 160;
+  canvas.width = W;
+  canvas.height = H;
+  ctx.clearRect(0, 0, W, H);
+
+  const padL = 8, padR = 8, padT = 18, padB = 28;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const step = chartW / 29;
+
+  // Grid lines (4 horizontal)
+  ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 3; i++) {
+    const gy = padT + (chartH / 3) * i;
+    ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(W - padR, gy); ctx.stroke();
+  }
+
+  // Gradient fill under line
+  const grad = ctx.createLinearGradient(0, padT, 0, padT + chartH);
+  grad.addColorStop(0, 'rgba(99,102,241,0.45)');
+  grad.addColorStop(1, 'rgba(99,102,241,0.02)');
+
+  ctx.beginPath();
+  ctx.moveTo(padL, padT + chartH);
+  incomes.forEach((v, i) => {
+    const x = padL + step * i;
+    const y = padT + chartH - (v / maxVal) * chartH;
+    ctx.lineTo(x, y);
+  });
+  ctx.lineTo(padL + step * 29, padT + chartH);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle = '#6366f1';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  incomes.forEach((v, i) => {
+    const x = padL + step * i;
+    const y = padT + chartH - (v / maxVal) * chartH;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Dots kecil + label tanggal
+  incomes.forEach((v, i) => {
+    const x = padL + step * i;
+    const y = padT + chartH - (v / maxVal) * chartH;
+
+    // Dot
+    ctx.beginPath();
+    ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#818cf8';
+    ctx.fill();
+
+    // Value label di atas dot (hanya hari dengan pendapatan > 0 dan setiap 5 hari)
+    if (v > 0 && (i % 5 === 0 || i === 29)) {
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.font = '8px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(v >= 1000000 ? (v/1000000).toFixed(1)+'jt' : Math.round(v/1000)+'rb', x, y - 6);
+    }
+
+    // Label tanggal di bawah (tiap 5 hari)
+    if (days[i]) {
+      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.font = '9px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(days[i], x, H - 5);
+    }
+  });
+}
+
 
 function renderTopList(elId, counts, isDuration) {
   const el = document.getElementById(elId);
@@ -2693,6 +2894,7 @@ function init() {
 
   updateClock();
   setInterval(updateClock, 1000);
+    window.addEventListener('resize', () => { if (document.getElementById('trendChart')) renderTrendChart(); });
   setInterval(updateUIAfterDataChange, 60000);
   setInterval(checkCheckoutNotifications, 30000); // cek checkout setiap 30 detik
 
