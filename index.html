@@ -3089,20 +3089,29 @@ function zeaGetContext(){
   ctx.timestamp = new Date().toISOString();
   ctx.businessDate = (typeof getBusinessDate === "function") ? getBusinessDate() : "-";
 
-  /* Records: filter 7 hari terakhir supaya payload tidak terlalu besar */
+  /* Records: hanya hari ini + kemarin, max 30 record, field penting saja */
   if(typeof records !== "undefined" && Array.isArray(records)){
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 7);
-    const cutStr = cutoff.toISOString().slice(0,10);
+    const today = ctx.businessDate;
+    const yday = new Date(); yday.setDate(yday.getDate()-1);
+    const ydayStr = yday.toISOString().slice(0,10);
     ctx.records = records
-      .filter(r => r.date >= cutStr && r.status !== "cancelled")
-      .slice(0, 80); /* max 80 record */
+      .filter(r => (r.date === today || r.date === ydayStr) && r.status !== "cancelled")
+      .slice(0, 30)
+      .map(r => ({
+        id: r.id, date: r.date, type: r.type,
+        unit: r.unitNumber, duration: r.duration,
+        checkIn: r.checkIn, checkOut: r.checkOut,
+        total: r.totalPayment || r.amount || 0,
+        method: r.method, marketing: r.marketing,
+        category: r.category, status: r.status
+      }));
     ctx.totalRecordsAll = records.length;
   }
 
-  /* Unit info */
-  if(typeof ALL_UNITS !== "undefined") ctx.allUnits = ALL_UNITS;
-  if(typeof UNITS !== "undefined") ctx.unitConfig = UNITS;
+  /* Unit info — ringkas saja */
+  if(typeof UNITS !== "undefined"){
+    ctx.unitCount = { Studio: (UNITS.Studio||[]).length, "1BR": (UNITS["1BR"]||[]).length, "2BR": (UNITS["2BR"]||[]).length };
+  }
 
   /* Hitung summary harian langsung di sini */
   if(ctx.records){
