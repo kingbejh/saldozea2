@@ -652,57 +652,59 @@ font-size:0.85rem; font-weight:700; color:#c084fc;
             </div>
     </div>
 
-    <!-- FITUR BARU -->
-    <div style="margin-top:1rem;">
+```
+<!-- FITUR BARU -->
+<div style="margin-top:1rem;">
 
-      <!-- Grafik Tren 30 Hari -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-header">
-          <div class="card-title"><div class="card-title-icon primary">📊</div>Tren Pendapatan 30 Hari Terakhir</div>
-        </div>
-        <canvas id="trendChart" style="width:100%;height:160px;display:block;"></canvas>
-      </div>
-
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;">
-
-        <!-- Occupancy Rate -->
-        <div class="card">
-          <div class="card-header"><div class="card-title"><div class="card-title-icon cyan">🏢</div>Occupancy Rate Hari Ini</div></div>
-          <div style="padding:1rem;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-              <span style="font-size:2rem;font-weight:700;color:var(--accent-1)" id="occupancyPct">0%</span>
-              <span style="font-size:0.85rem;color:var(--text-secondary)" id="occupancyDetail">0 / 0 unit</span>
-            </div>
-            <div style="background:var(--bg-input);border-radius:999px;height:12px;overflow:hidden;">
-              <div id="occupancyBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent-1),var(--accent-success));border-radius:999px;transition:width 0.6s ease;"></div>
-            </div>
-            <div style="margin-top:0.5rem;font-size:0.75rem;color:var(--text-muted)" id="occupancyLabel">Menghitung...</div>
-          </div>
-        </div>
-
-        <!-- Target Harian -->
-        <div class="card">
-          <div class="card-header"><div class="card-title"><div class="card-title-icon success">🎯</div>Target Harian</div></div>
-          <div style="padding:1rem;">
-            <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;align-items:center;">
-              <input type="number" id="dailyTargetInput" placeholder="Target harian (Rp)" style="flex:1;padding:0.5rem;border-radius:var(--radius-md);border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-primary);font-size:0.85rem;">
-              <button onclick="saveDailyTarget()" style="padding:0.5rem 0.75rem;border-radius:var(--radius-md);background:var(--accent-1);color:#fff;border:none;cursor:pointer;font-weight:600;">Set</button>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-              <span style="font-size:0.8rem;color:var(--text-secondary)">Pencapaian:</span>
-              <span style="font-size:1.1rem;font-weight:700;color:var(--accent-1)" id="targetPct">0%</span>
-            </div>
-            <div style="background:var(--bg-input);border-radius:999px;height:12px;overflow:hidden;">
-              <div id="targetBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent-success),#00e676);border-radius:999px;transition:width 0.6s ease;"></div>
-            </div>
-            <div style="margin-top:0.5rem;font-size:0.75rem;color:var(--text-muted)" id="targetLabel">Belum ada target</div>
-          </div>
-        </div>
-
-      </div>
+  <!-- Grafik Tren 30 Hari -->
+  <div class="card" style="margin-bottom:1rem;">
+    <div class="card-header">
+      <div class="card-title"><div class="card-title-icon primary">📊</div>Tren Pendapatan 30 Hari Terakhir</div>
     </div>
+    <canvas id="trendChart" style="width:100%;height:160px;display:block;"></canvas>
   </div>
 
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;">
+
+    <!-- Occupancy Rate -->
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="card-title-icon cyan">🏢</div>Occupancy Rate Hari Ini</div></div>
+      <div style="padding:1rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+          <span style="font-size:2rem;font-weight:700;color:var(--accent-1)" id="occupancyPct">0%</span>
+          <span style="font-size:0.85rem;color:var(--text-secondary)" id="occupancyDetail">0 / 0 unit</span>
+        </div>
+        <div style="background:var(--bg-input);border-radius:999px;height:12px;overflow:hidden;">
+          <div id="occupancyBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent-1),var(--accent-success));border-radius:999px;transition:width 0.6s ease;"></div>
+        </div>
+        <div style="margin-top:0.5rem;font-size:0.75rem;color:var(--text-muted)" id="occupancyLabel">Menghitung...</div>
+      </div>
+    </div>
+
+    <!-- Target Harian -->
+    <div class="card">
+      <div class="card-header"><div class="card-title"><div class="card-title-icon success">🎯</div>Target Harian</div></div>
+      <div style="padding:1rem;">
+        <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;align-items:center;">
+          <input type="number" id="dailyTargetInput" placeholder="Target harian (Rp)" style="flex:1;padding:0.5rem;border-radius:var(--radius-md);border:1px solid var(--border-color);background:var(--bg-input);color:var(--text-primary);font-size:0.85rem;">
+          <button onclick="saveDailyTarget()" style="padding:0.5rem 0.75rem;border-radius:var(--radius-md);background:var(--accent-1);color:#fff;border:none;cursor:pointer;font-weight:600;">Set</button>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+          <span style="font-size:0.8rem;color:var(--text-secondary)">Pencapaian:</span>
+          <span style="font-size:1.1rem;font-weight:700;color:var(--accent-1)" id="targetPct">0%</span>
+        </div>
+        <div style="background:var(--bg-input);border-radius:999px;height:12px;overflow:hidden;">
+          <div id="targetBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent-success),#00e676);border-radius:999px;transition:width 0.6s ease;"></div>
+        </div>
+        <div style="margin-top:0.5rem;font-size:0.75rem;color:var(--text-muted)" id="targetLabel">Belum ada target</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+```
+
+  </div>
 
   <!-- RENTAL -->
 
@@ -2926,8 +2928,11 @@ function init() {
 
 document.addEventListener('DOMContentLoaded', init);
 </script>
+
 <!-- ============================= -->
+
 <!-- KANG CHECK-IN AI – SALDOZEA -->
+
 <!-- ============================= -->
 
 <style>
@@ -2947,7 +2952,11 @@ font-size:22px;
 cursor:pointer;
 box-shadow:0 10px 25px rgba(0,0,0,0.25);
 z-index:99999;
+transition:transform 0.2s;
 }
+.zea-ai-fab:active{transform:scale(0.92);}
+.zea-ai-fab.loading{animation:zeaPulse 1s infinite;}
+@keyframes zeaPulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
 
 .zea-ai-modal{
 position:fixed;
@@ -2966,11 +2975,20 @@ font-family:system-ui;
 }
 
 .zea-ai-header{
-padding:14px;
+padding:14px 16px;
 background:#0d2a5e;
 color:#fff;
 font-weight:600;
 font-size:14px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+.zea-ai-header-close{
+cursor:pointer;
+font-size:18px;
+opacity:0.7;
+padding:0 4px;
 }
 
 .zea-ai-body{
@@ -3002,140 +3020,205 @@ border:none;
 padding:0 16px;
 cursor:pointer;
 font-weight:600;
+font-size:14px;
+transition:opacity 0.2s;
+}
+.zea-ai-input button:disabled{
+opacity:0.4;
+cursor:not-allowed;
 }
 
 .zea-ai-message{
 margin-bottom:10px;
+line-height:1.5;
 }
-
 .zea-user{color:#111;}
 .zea-ai{color:#0d2a5e;font-weight:500;}
+.zea-ai-thinking{color:#888;font-style:italic;}
+.zea-ai-error{color:#c0392b;font-weight:500;}
 </style>
 
-<div class="zea-ai-fab" onclick="toggleZeaAI()">⚡</div>
+<div class="zea-ai-fab" id="zeaAiFab" onclick="toggleZeaAI()">⚡</div>
 
 <div class="zea-ai-modal" id="zeaAiModal">
-<div class="zea-ai-header">
-Kang Check-In • SaldoZea
-</div>
-<div class="zea-ai-body" id="zeaAiChat"></div>
-<div class="zea-ai-input">
-<textarea id="zeaAiPrompt" rows="2" placeholder="analisa transaksi, prediksi omzet, cek bug..."></textarea>
-<button onclick="handleZeaAI()">Kirim</button>
-</div>
+  <div class="zea-ai-header">
+    <span>⚡ Kang Check-In • SaldoZea</span>
+    <span class="zea-ai-header-close" onclick="toggleZeaAI()">✕</span>
+  </div>
+  <div class="zea-ai-body" id="zeaAiChat"></div>
+  <div class="zea-ai-input">
+    <textarea id="zeaAiPrompt" rows="2" placeholder="analisa transaksi, prediksi omzet, cek anomali..."></textarea>
+    <button id="zeaAiSendBtn" onclick="handleZeaAI()">Kirim</button>
+  </div>
 </div>
 
 <script>
-
 /* ============================= */
-/* 🔐 GANTI DENGAN API KEY BARU */
+/* KANG CHECK-IN — GROQ EDITION  */
+/* Proxy: Cloudflare Worker      */
+/* Model: llama3-8b-8192         */
 /* ============================= */
 
-const GEMINI_API_KEY = "";
-const GEMINI_PROXY_URL = "https://zea-gemini-proxy.kingbejh.workers.dev";
-
-
-/* ============================= */
+const ZEA_PROXY_URL = "https://zea-gemini-proxy.kingbejh.workers.dev";
+let zeaAiBusy = false;
 
 function toggleZeaAI(){
-const modal=document.getElementById("zeaAiModal");
-modal.style.display=modal.style.display==="flex"?"none":"flex";
+  const modal = document.getElementById("zeaAiModal");
+  modal.style.display = modal.style.display === "flex" ? "none" : "flex";
+  if(modal.style.display === "flex"){
+    document.getElementById("zeaAiPrompt").focus();
+  }
 }
 
-async function askZeaAI(context,prompt){
+/* Tekan Enter = kirim, Shift+Enter = baris baru */
+document.addEventListener("DOMContentLoaded", function(){
+  const ta = document.getElementById("zeaAiPrompt");
+  if(ta){
+    ta.addEventListener("keydown", function(e){
+      if(e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        handleZeaAI();
+      }
+    });
+  }
+});
 
-const systemInstruction=`
-Nama kamu Kang Check-In.
-Kamu profesional, ringkas, solutif.
-Kamu bagian dari tim Zea Property.
+function zeaGetContext(){
+  /* FIX: ambil langsung dari variabel global app, bukan window.records */
+  const ctx = {};
+  ctx.timestamp = new Date().toISOString();
+  ctx.businessDate = (typeof getBusinessDate === "function") ? getBusinessDate() : "-";
 
-Fokus:
-- Analisa transaksi
-- Deteksi bug
-- Prediksi penghasilan
-- Insight financial tracker
-- Optimasi performa sistem
+  /* Records: filter 7 hari terakhir supaya payload tidak terlalu besar */
+  if(typeof records !== "undefined" && Array.isArray(records)){
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 7);
+    const cutStr = cutoff.toISOString().slice(0,10);
+    ctx.records = records
+      .filter(r => r.date >= cutStr && r.status !== "cancelled")
+      .slice(0, 80); /* max 80 record */
+    ctx.totalRecordsAll = records.length;
+  }
 
-Jawaban harus langsung actionable.
-`;
+  /* Unit info */
+  if(typeof ALL_UNITS !== "undefined") ctx.allUnits = ALL_UNITS;
+  if(typeof UNITS !== "undefined") ctx.unitConfig = UNITS;
 
-const fullPrompt=`
-SYSTEM:
-${systemInstruction}
+  /* Hitung summary harian langsung di sini */
+  if(ctx.records){
+    let incRental=0, incOther=0, exp=0, guests=0;
+    const today = ctx.businessDate;
+    ctx.records.filter(r => r.date === today).forEach(r => {
+      if(r.type==="rental"){ incRental += r.totalPayment||0; if(r.duration!=="1J"&&r.duration!=="2J") guests++; }
+      else if(r.type==="income") incOther += r.amount||0;
+      else if(r.type==="expense") exp += r.amount||0;
+    });
+    ctx.todaySummary = {
+      incomeRental: incRental,
+      incomeOther: incOther,
+      totalIncome: incRental + incOther,
+      totalExpense: exp,
+      saldo: incRental + incOther - exp,
+      guests: guests
+    };
+  }
 
-DATA SALDOZEA:
-${JSON.stringify(context)}
-
-PERTANYAAN:
-${prompt}
-`;
-
-const response=await fetch(
-GEMINI_PROXY_URL,
-
-{
-method:"POST",
-headers:{ "Content-Type":"application/json"},
-body:JSON.stringify({
-contents:[{
-parts:[{text:fullPrompt}]
-}]
-})
+  return ctx;
 }
-);
 
-if(!response.ok){
-const errData = await response.json();
-const errMsg = errData?.error?.message || response.status;
-return `error ${response.status}: ${errMsg}`;
+async function askZeaAI(context, userPrompt){
+  const systemInstruction = `Kamu adalah Kang Check-In, asisten AI internal Zea Property.
+Gaya: profesional, ringkas, langsung ke solusi. Gunakan bahasa Indonesia.
+Fokus: analisa transaksi, deteksi anomali keuangan, prediksi omzet, insight operasional hotel/properti.
+Jangan bertele-tele. Jawaban max 5 paragraf pendek atau bullet list jika perlu.`;
 
-}
+  const fullPrompt = `${systemInstruction}
 
-const data=await response.json();
-return data.candidates?.[0]?.content?.parts?.[0]?.text || "tidak ada respons.";
+DATA SALDOZEA (7 hari terakhir):
+${JSON.stringify(context, null, 2)}
+
+PERTANYAAN USER:
+${userPrompt}`;
+
+  const response = await fetch(ZEA_PROXY_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: fullPrompt }] }]
+    })
+  });
+
+  if(!response.ok){
+    let errMsg = "Gagal koneksi ke server AI.";
+    try {
+      const errData = await response.json();
+      errMsg = errData?.error?.message || ("Error " + response.status);
+    } catch(e){}
+    throw new Error(errMsg);
+  }
+
+  const data = await response.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if(!text) throw new Error("Respons kosong dari AI.");
+  return text;
 }
 
 async function handleZeaAI(){
+  if(zeaAiBusy) return; /* guard double-submit */
 
-const chat=document.getElementById("zeaAiChat");
-const input=document.getElementById("zeaAiPrompt");
-const userText=input.value.trim();
-if(!userText)return;
+  const chat  = document.getElementById("zeaAiChat");
+  const input = document.getElementById("zeaAiPrompt");
+  const btn   = document.getElementById("zeaAiSendBtn");
+  const fab   = document.getElementById("zeaAiFab");
 
-chat.innerHTML+=`<div class="zea-ai-message zea-user">anda: ${userText}</div>`;
-input.value="";
+  const userText = input.value.trim();
+  if(!userText) return;
 
-chat.innerHTML+=`<div class="zea-ai-message zea-ai">kang check-in sedang menganalisa...</div>`;
-chat.scrollTop=chat.scrollHeight;
+  /* Tampilkan pesan user */
+  chat.innerHTML += `<div class="zea-ai-message zea-user">🧑 ${userText}</div>`;
+  input.value = "";
 
-/* AUTO AMBIL DATA GLOBAL DARI APP */
+  /* Tampilkan bubble loading dengan ID unik agar bisa dihapus */
+  const thinkingId = "zea-thinking-" + Date.now();
+  chat.innerHTML += `<div class="zea-ai-message zea-ai-thinking" id="${thinkingId}">⚡ Kang Check-In sedang menganalisa...</div>`;
+  chat.scrollTop = chat.scrollHeight;
 
-let contextData={};
+  /* Set busy state */
+  zeaAiBusy = true;
+  btn.disabled = true;
+  fab.classList.add("loading");
 
-if(window.records){
-contextData.records=window.records;
+  try {
+    const contextData = zeaGetContext();
+    const aiResponse  = await askZeaAI(contextData, userText);
+
+    /* Hapus bubble loading */
+    const thinkingEl = document.getElementById(thinkingId);
+    if(thinkingEl) thinkingEl.remove();
+
+    /* Tampilkan respons — render newline sebagai <br> */
+    const formatted = aiResponse.replace(/\n/g, "<br>");
+    chat.innerHTML += `<div class="zea-ai-message zea-ai">⚡ <b>Kang Check-In:</b><br>${formatted}</div>`;
+
+  } catch(err) {
+    const thinkingEl = document.getElementById(thinkingId);
+    if(thinkingEl) thinkingEl.remove();
+    chat.innerHTML += `<div class="zea-ai-message zea-ai-error">⚠️ ${err.message}</div>`;
+  } finally {
+    /* Reset busy state */
+    zeaAiBusy = false;
+    btn.disabled = false;
+    fab.classList.remove("loading");
+    chat.scrollTop = chat.scrollHeight;
+  }
 }
-
-if(window.transactions){
-contextData.transactions=window.transactions;
-}
-
-if(window.summary){
-contextData.summary=window.summary;
-}
-
-contextData.timestamp=new Date().toISOString();
-
-const aiResponse=await askZeaAI(contextData,userText);
-
-chat.innerHTML+=`<div class="zea-ai-message zea-ai">kang check-in: ${aiResponse}</div>`;
-chat.scrollTop=chat.scrollHeight;
-}
-
 </script>
 
 <!-- ============================= -->
-<!-- END KANG CHECK-IN -->
+
+<!-- END KANG CHECK-IN             -->
+
 <!-- ============================= -->
+
 </body>
 </html>
