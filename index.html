@@ -3210,6 +3210,68 @@ function toggleZeaAI(){
   modal.style.display=modal.style.display==="flex"?"none":"flex";
 }
 
+function getAIContext(){
+  const today = getBusinessDate();
+  const todayRecs = records.filter(r => r.date === today && r.status !== 'cancelled');
+
+  let guests=0, rentalInc=0, totalExp=0, otherInc=0;
+  let tCash=0, tTransfer=0, tQR=0;
+  const unitUsage={}, mktCounts={}, durCounts={};
+
+  todayRecs.forEach(r => {
+    if(r.type==='rental'){
+      rentalInc += r.totalPayment||0;
+      tCash += r.cashAmount||0;
+      tTransfer += r.transferAmount||0;
+      tQR += r.qrAmount||0;
+      if(r.duration!=='1J' && r.duration!=='2J'){
+        guests++;
+        unitUsage[r.unitNumber] = (unitUsage[r.unitNumber]||0)+1;
+        mktCounts[r.marketing] = (mktCounts[r.marketing]||0)+1;
+      }
+      durCounts[r.duration] = (durCounts[r.duration]||0)+1;
+    } else if(r.type==='income'){
+      otherInc += r.amount||0;
+    } else if(r.type==='expense'){
+      totalExp += r.amount||0;
+    }
+  });
+
+  const unitStatuses = ALL_UNITS.map(u => {
+    const s = getUnitStatus(u.number);
+    return {
+      unit: u.number,
+      tipe: u.type,
+      status: s.status,
+      sisa_menit: s.remaining||0,
+      tamu: s.rental ? (s.rental.guestIdentity||s.rental.marketing||'-') : '-'
+    };
+  });
+
+  return {
+    tanggal_bisnis: today,
+    waktu_sekarang: new Date().toLocaleString('id-ID'),
+    total_tamu_hari_ini: guests,
+    pendapatan_rental: rentalInc,
+    pendapatan_lain: otherInc,
+    pengeluaran: totalExp,
+    saldo: (rentalInc+otherInc) - totalExp,
+    cash: tCash, transfer: tTransfer, qris: tQR,
+    unit_terlaris: Object.entries(unitUsage).sort((a,b)=>b[1]-a[1]).slice(0,5),
+    marketing_terlaris: Object.entries(mktCounts).sort((a,b)=>b[1]-a[1]).slice(0,5),
+    durasi_populer: Object.entries(durCounts).sort((a,b)=>b[1]-a[1]),
+    status_unit: unitStatuses,
+    total_unit: ALL_UNITS.length,
+    unit_terisi: unitStatuses.filter(u=>u.status!=='available').length,
+    unit_kosong: unitStatuses.filter(u=>u.status==='available').length,
+    transaksi_terakhir: todayRecs.slice(-10).map(r=>({
+      tipe: r.type, unit: r.unitNumber||'-', waktu: r.time||'-',
+      jumlah: r.totalPayment||r.amount||0, durasi: r.duration||'-',
+      marketing: r.marketing||'-', tamu: r.guestIdentity||'-'
+    }))
+  };
+}
+
 async function askZeaAI(context, prompt){
   const systemInstruction = `
 Nama kamu Kang Check-In.
@@ -3223,8 +3285,8 @@ Fokus:
 - Insight financial tracker
 - Jawab dalam Bahasa Indonesia yang santai tapi informatif
 
-Berikut data dari sistem SaldoZea:
-${JSON.stringify(context)}
+Berikut data REAL-TIME dari sistem SaldoZea:
+${JSON.stringify(context, null, 2)}
 
 Jawaban harus langsung actionable dan berdasarkan data di atas.
 `;
@@ -3265,12 +3327,7 @@ async function handleZeaAI(){
   chat.innerHTML += `<div class="zea-ai-message"><span class="zea-ai">⏳ kang check-in sedang menganalisa...</span></div>`;
   chat.scrollTop = chat.scrollHeight;
 
-  let contextData = {};
-  if(window.records) contextData.records = window.records;
-  if(window.transactions) contextData.transactions = window.transactions;
-  if(window.summary) contextData.summary = window.summary;
-  contextData.timestamp = new Date().toISOString();
-
+  const contextData = getAIContext();
   const aiResponse = await askZeaAI(contextData, userText);
 
   const msgs = chat.querySelectorAll('.zea-ai-message');
