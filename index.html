@@ -1087,7 +1087,8 @@ font-size:0.85rem; font-weight:700; color:#c084fc;
       <div class="stat-card success" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Masuk</div><div class="stat-value" id="historyTotalIn" style="font-size:1.25rem">Rp 0</div></div>
       <div class="stat-card danger" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Keluar</div><div class="stat-value" id="historyTotalOut" style="font-size:1.25rem">Rp 0</div></div>
       <div class="stat-card" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Saldo</div><div class="stat-value" id="historyNet" style="font-size:1.25rem">Rp 0</div></div>
-      <div class="stat-card cyan" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Record</div><div class="stat-value" id="historyCount" style="font-size:1.25rem">0</div></div>
+      <div class="stat-card cyan" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Tamu (Sewa)</div><div class="stat-value" id="historyGuestCount" style="font-size:1.25rem">0</div><div style="font-size:0.6rem;color:var(--text-muted);margin-top:0.2rem">Tdk termasuk 1J/2J Charge</div></div>
+      <div class="stat-card" style="padding:1rem"><div class="stat-label" style="font-size:0.7rem">Total Transaksi</div><div class="stat-value" id="historyCount" style="font-size:1.25rem">0</div><div style="font-size:0.6rem;color:var(--text-muted);margin-top:0.2rem">Semua jenis record</div></div>
     </div>
     <div class="table-container">
       <table><thead><tr><th>#</th><th>Waktu</th><th>Jenis</th><th>Unit/Sumber</th><th>Marketing</th><th>Durasi</th><th>Total</th><th>Metode</th><th>Ket</th><th>Aksi</th></tr></thead>
@@ -2199,7 +2200,7 @@ function renderTopList(elId, counts, isDuration) {
 // ============================================================
 function renderRecentTransactions() {
   const today = getBusinessDate();
-  const recs = records.filter(r => r.date === today).sort((a,b) => b.timestamp - a.timestamp).slice(0, 20);
+  const recs = records.filter(r => r.date === today && r.status !== 'cancelled').sort((a,b) => b.timestamp - a.timestamp).slice(0, 20);
   const tbody = document.getElementById('recentTransactions');
   if (!recs.length) { tbody.innerHTML = '<tr><td colspan="5" class="table-empty">Belum ada transaksi hari ini</td></tr>'; return; }
   tbody.innerHTML = recs.map(r => {
@@ -2237,15 +2238,22 @@ function applyFilters() {
   if (fm) filtered = filtered.filter(r => r.marketing === fm);
   filtered.sort((a,b) => b.timestamp - a.timestamp);
 
-  let totalIn=0, totalOut=0;
+  let totalIn=0, totalOut=0, guestCount=0;
   filtered.forEach(r => {
-    if (r.type === 'rental') totalIn += r.totalPayment || 0;
-    else if (r.type === 'income') totalIn += r.amount || 0;
-    else if (r.type === 'expense') totalOut += r.amount || 0;
+    if (r.type === 'rental') {
+      totalIn += r.totalPayment || 0;
+      // Hitung tamu: sama persis dengan logika dashboard — 1J & 2J = Charge, tidak dihitung tamu
+      if (r.duration !== '1J' && r.duration !== '2J') guestCount++;
+    } else if (r.type === 'income') {
+      totalIn += r.amount || 0;
+    } else if (r.type === 'expense') {
+      totalOut += r.amount || 0;
+    }
   });
   document.getElementById('historyTotalIn').textContent = fmt(totalIn);
   document.getElementById('historyTotalOut').textContent = fmt(totalOut);
   document.getElementById('historyNet').textContent = fmt(totalIn - totalOut);
+  document.getElementById('historyGuestCount').textContent = guestCount;
   document.getElementById('historyCount').textContent = filtered.length;
 
   const tbody = document.getElementById('historyTable');
